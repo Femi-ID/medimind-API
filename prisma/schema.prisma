@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  // output   = "../generated/prisma"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                         String            @id @default(uuid())
+  email                      String            @unique
+  passwordHash               String
+  firstName                  String
+  lastName                   String
+  age                        Int?
+  gender                     String?
+  preferredLanguage          PreferredLanguage @default(ENGLISH)
+  role                       UserRole          @default(USER)
+  emailVerificationToken     String?
+  emailVerificationExpiresAt DateTime?
+  password_reset_token       String?
+  passwordResetExpiresAt     DateTime?
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+
+  vitals       Vital[]
+  sessions     Session[]
+  chatSessions ChatSession[]
+  referrals    HospitalReferral[]
+
+  @@map("users")
+}
+
+enum PreferredLanguage {
+  ENGLISH
+  PIDGIN
+  YORUBA
+  IGBO
+  HAUSA
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  refreshTokenHash String
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Vital {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  systolicBp   Int?
+  diastolicBp  Int?
+  heartRate    Int?
+  weight       Float?
+  bloodGlucose Float?
+  recordedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  @@index([userId, recordedAt])
+  @@map("vitals")
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  title     String   @default("New consultation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatMessage[]
+
+  @@index([userId, updatedAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id                String        @id @default(uuid())
+  session           ChatSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId         String
+  role              ChatRole      @default(USER)
+  content           String        @db.Text
+  severity          ChatSeverity? @default(NULL)
+  isEmergency       Boolean       @default(false)
+  referralSuggested Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+enum ChatSeverity {
+  LOW
+  MODERATE
+  HIGH
+  NULL
+}
+
+model HospitalReferral {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  sessionId String?
+  placeId   String
+  name      String
+  latitude  Float
+  longitude Float
+  distance  Float?
+  severity  String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("hospital_referrals")
+}
