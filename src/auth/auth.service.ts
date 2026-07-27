@@ -94,4 +94,37 @@ export class AuthService {
   async logout(userId: string) {
     //     await this.usersService.hashAndStoreRefreshToken(userId, '');
   }
+
+  async validateRefreshToken(payload: JwtPayloadDto, refreshToken: string) {
+    try {
+        // const user = await this.usersService.getUserById(payload.sub);
+        const session = await this.prismaService.session.findFirst({
+            where: { 
+                id: payload.sub, 
+                revokedAt: null, 
+                expiresAt: { gt: new Date() },
+            }, 
+            orderBy: { createdAt: 'desc'}
+        });
+        this.logger.log(`user session- ${session}`)
+            if (!session?.refreshTokenHash) throw new UnauthorizedException('No valid refresh token from the db!')
+
+            const refreshTokenMatches = await argon2.verify(session.refreshTokenHash, refreshToken)
+            if(!refreshTokenMatches) throw new UnauthorizedException('Invalid refresh token match!')
+                return { id: payload.sub, email: payload.email, role: payload.role }
+    } catch(error) {
+      this.logger.error(error);
+      throw new UnauthorizedException({
+        message: 'Unable to validate refresh token...',
+      });
+    }
+  }
+
+  async generateNewTokens(payload: JwtPayloadDto) {
+    const { accessToken, refreshToken } = await this.generateNewTokens(payload);
+    // await this.usersService.hashAndStoreRefreshToken(payload.sub, refreshToken); 
+
+    this.logger.log({ accessToken: accessToken, refreshToken: refreshToken });
+    return { accessToken: accessToken, refreshToken: refreshToken }
+  }
 }

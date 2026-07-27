@@ -26,8 +26,8 @@ export class UsersController {
     return await this.usersService.createUser(createUserDto);
   }
 
-  @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Get('profile')
   async getProfile(@Request() req: UserRequest) {
     this.logger.log(`From req.user: ${JSON.stringify(req.user)}`);
