@@ -4,11 +4,13 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { CreateGoogleUserDto } from 'src/users/dtos/create-googleUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -100,5 +102,18 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User not found..');
     return user;
+  }
+
+  async signUpSocialAccount(createGoogleUserDto: CreateGoogleUserDto) {
+    try {
+        const newUser = await this.prismaService.user.create({ data: { ...createGoogleUserDto}})
+        console.log('new user created via google..', newUser);
+        return newUser;
+    } catch (error) {
+        this.logger.error(error);
+        throw new UnauthorizedException({
+        message: 'Unable to create new user...',
+        });
+    }
   }
 }

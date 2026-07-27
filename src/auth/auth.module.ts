@@ -10,9 +10,11 @@ import jwtConfig from './config/jwt.config';
 import refreshJwtConfig from './config/refresh-jwt.config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshStrategy } from './strategies/refresh-jwt.strategy';
+import googleOauthConfig from './config/google-oauth.config';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
-  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshStrategy, GoogleStrategy],
   controllers: [AuthController],
   imports: [
     UsersModule,
@@ -30,6 +32,7 @@ import { RefreshStrategy } from './strategies/refresh-jwt.strategy';
     }),
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(refreshJwtConfig),
+    ConfigModule.forFeature(googleOauthConfig),
   ],
   exports: [PassportModule],
 })

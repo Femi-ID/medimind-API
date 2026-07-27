@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -15,6 +16,7 @@ import { JwtAuthGuard } from './guards/jwt-auth-guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Public } from './decorators/public.decorators';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -43,12 +45,26 @@ export class AuthController {
   @Public()
   @UseGuards(RefreshAuthGuard)
   @ApiBearerAuth('access-token')
-  @Post('refresh')
+  @Get('refresh')
   async refreshToken(@Request() req: UserRequest) {
     return await this.authService.generateNewTokens({
         sub: req.user.id,
         email: req.user.email,
         role: req.user.role
     })
+  }
+
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/login')
+  async googleLogin() {}
+
+  @Public() 
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  async googleCallbackUrl(@Request() req) {
+    console.log('user request..', req.user)
+    const response = await this.authService.login(req.user.id, req.user.email, req.user.role)
+    return response;
   }
 }

@@ -17,16 +17,16 @@ datasource db {
 model User {
   id                         String            @id @default(uuid())
   email                      String            @unique
-  passwordHash               String
+  passwordHash               String?
   firstName                  String
   lastName                   String
   age                        Int?
-  gender                     String?
+  gender                     Gender?
   preferredLanguage          PreferredLanguage @default(ENGLISH)
   role                       UserRole          @default(USER)
   emailVerificationToken     String?
   emailVerificationExpiresAt DateTime?
-  password_reset_token       String?
+  passwordResetToken         String?
   passwordResetExpiresAt     DateTime?
   createdAt                  DateTime          @default(now())
   updatedAt                  DateTime          @updatedAt
@@ -37,6 +37,12 @@ model User {
   referrals    HospitalReferral[]
 
   @@map("users")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 enum PreferredLanguage {

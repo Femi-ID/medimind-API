@@ -15,6 +15,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayloadDto } from './dtos/jwt-payload.dto';
 import refreshJwtConfig from './config/refresh-jwt.config';
 import type { ConfigType } from '@nestjs/config';
+import { CreateGoogleUserDto } from '../users/dtos/create-googleUser.dto';
 
 @Injectable()
 export class AuthService {
@@ -64,10 +65,11 @@ export class AuthService {
   }
 
   async verifyPassword(
-    hashedPassword: string,
+    hashedPassword: string| null,
     plainPassword: string,
   ): Promise<boolean> {
     try {
+      if (!hashedPassword) return false;
       return await argon2.verify(hashedPassword, plainPassword);
     } catch (error) {
       this.logger.log(`Error verifying password`, error);
@@ -126,5 +128,13 @@ export class AuthService {
 
     this.logger.log({ accessToken: accessToken, refreshToken: refreshToken });
     return { accessToken: accessToken, refreshToken: refreshToken }
+  }
+
+  async validateGoogleUser(googleUser: CreateGoogleUserDto) {
+    console.log('google user..', googleUser)
+    const user = this.usersService.getUserByEmail(googleUser.email);
+    if (user) return user // user already exists in the db, no need to create user account
+    const newUser =  await this.usersService.signUpSocialAccount(googleUser);
+    return newUser;
   }
 }

@@ -80,11 +80,11 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.9.0
+ * Prisma Client JS version: 7.9.1
  * Query Engine version: e922089b7d7502aff4249d5da3420f6fa55fc6ad
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.9.0",
+  client: "7.9.1",
   engine: "e922089b7d7502aff4249d5da3420f6fa55fc6ad"
 }
 
@@ -917,7 +917,7 @@ export const UserScalarFieldEnum = {
   role: 'role',
   emailVerificationToken: 'emailVerificationToken',
   emailVerificationExpiresAt: 'emailVerificationExpiresAt',
-  password_reset_token: 'password_reset_token',
+  passwordResetToken: 'passwordResetToken',
   passwordResetExpiresAt: 'passwordResetExpiresAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1051,6 +1051,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Gender'
+ */
+export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
+    
+
+
+/**
+ * Reference to a field of type 'Gender[]'
+ */
+export type ListEnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender[]'>
     
 
 

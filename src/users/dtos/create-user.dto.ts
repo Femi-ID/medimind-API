@@ -1,10 +1,12 @@
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MaxLength,
 } from 'class-validator';
+import { Gender } from 'src/generated/prisma/enums';
 
 export class CreateUserDto {
   @IsEmail()
@@ -25,6 +27,6 @@ export class CreateUserDto {
   password!: string;
 
   @IsOptional()
-  @IsString()
-  gender?: string;
+  @IsEnum(Gender)
+  gender?: Gender;
 }
