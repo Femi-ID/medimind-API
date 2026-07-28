@@ -48,10 +48,10 @@ export class AuthController {
   @Get('refresh')
   async refreshToken(@Request() req: UserRequest) {
     return await this.authService.generateNewTokens({
-        sub: req.user.id,
-        email: req.user.email,
-        role: req.user.role
-    })
+      sub: req.user.id,
+      email: req.user.email,
+      role: req.user.role,
+    });
   }
 
   @Public()
@@ -59,12 +59,16 @@ export class AuthController {
   @Get('google/login')
   async googleLogin() {}
 
-  @Public() 
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallbackUrl(@Request() req) {
-    console.log('user request..', req.user)
-    const response = await this.authService.login(req.user.id, req.user.email, req.user.role)
+    console.log('user request..', req.user);
+    const response = await this.authService.login(
+      req.user.id,
+      req.user.email,
+      req.user.role,
+    );
     return response;
   }
 }

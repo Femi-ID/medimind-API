@@ -2,10 +2,21 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+
+  //  security
+  // app.use(helmet());
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN ?? '*',
+    method: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    Credentials: true,
+  });
 
   //  global prefix with versioning
   app.setGlobalPrefix('api');
@@ -44,12 +55,14 @@ async function bootstrap() {
 
   // 2. Serve Scalar documentation at /api/docs
   app.use(
-    '/api/docs',
+    '/api/v1/docs',
     apiReference({
       content: document,
       // Optional: theme: 'alternate', // or 'default', 'moon', 'purple'
     }),
   );
   await app.listen(process.env.PORT ?? 3000);
+  logger.log(`Application running on http://localhost:3000`);
+  logger.log(`Swagger docs available at http://localhost:3000/api/v1/docs`);
 }
 bootstrap();
