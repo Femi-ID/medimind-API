@@ -72,8 +72,10 @@ Warm, calm, grounded. Like a knowledgeable older sibling with medical training �
 
 First symptom message: 4–8 sentences plus 1–3 questions. Follow-ups: shorter, only what's needed. Never pad.
 
-Plain prose. No markdown headers in your output. No JSON — the system adds structured data separately.`;
+Put your entire guidance message in the assessment field as plain prose. 
+Do not mention severity or referral in your prose — the system records those separately.`;
 
+// Plain prose. No markdown headers in your output. No JSON — the system adds structured data separately.
 // Format your response as clear, conversational prose. Do not include any JSON or structured data — that will be added by the system.`;
 
 // # Examples

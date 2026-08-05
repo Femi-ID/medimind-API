@@ -101,10 +101,10 @@ export class ConsultationsController {
     @Request() req: UserRequest,
     @Body() sendMessageDto: SendMessageDto,
   ) {
-    // if it's the first chat message, create a new chatSession
     let sessionId = sendMessageDto.sessionId;
     let isNewSession = false;
 
+    // if it's the first chat message, create a new chatSession
     if (!sessionId) {
       const session = await this.consultationsService.createSession(
         req.user.id,
@@ -112,10 +112,16 @@ export class ConsultationsController {
       sessionId = session.id;
       isNewSession = true;
     }
+
+    const coords =
+      sendMessageDto.lat != null && sendMessageDto.lng != null
+        ? { lat: sendMessageDto.lat, lng: sendMessageDto.lng }
+        : undefined;
     const result = await this.consultationsService.sendMessage(
       req.user.id,
       sessionId,
       sendMessageDto.content,
+      coords,
     );
 
     return { sessionId, isNewSession, ...result };

@@ -31,6 +31,7 @@ export class UsersService {
       where: { email: email },
     });
     // if (!user) throw new NotFoundException('User not found..');
+    // if (user.deletedAt < new Date().getTime) return 
     return user; // this returns a user object or null
   }
 

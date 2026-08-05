@@ -8,17 +8,36 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PromptBuilderService } from './prompt-builder.service';
 import { LlmService } from './llm.service';
-import { ChatRole } from 'src/generated/prisma/enums';
+import { ChatRole, ChatSeverity } from 'src/generated/prisma/enums';
 import { FALLBACK_RESPONSE } from './constants/prompts';
+import { AssessmentResult } from './schemas/assessment.schema';
+import {
+  DISCLAIMER,
+  EMERGENCY_ADVISORY,
+  VALIDATOR_FALLBACK,
+} from './constants/safety';
+import { EmergencyGuardService } from './emergency-guard.service';
+import { OutputValidatorService } from './output-validator.service';
 
 @Injectable()
 export class ConsultationsService {
   private readonly logger = new Logger(ConsultationsService.name);
+  private readonly severityToEnum: Record<
+    AssessmentResult['severity'],
+    ChatSeverity
+  > = {
+    low: ChatSeverity.LOW,
+    moderate: ChatSeverity.MODERATE,
+    high: ChatSeverity.HIGH,
+  };
 
   constructor(
     private readonly prismaService: PrismaService,
     private readonly promptBuilderService: PromptBuilderService,
     private readonly llmService: LlmService,
+    private readonly emergencyGuardService: EmergencyGuardService,
+    private readonly outputValidatorService: OutputValidatorService,
+    private readonly hospitalsService: HospitalsService,
   ) {}
 
   async createSession(userId: string, title?: string) {
@@ -82,7 +101,12 @@ export class ConsultationsService {
 
   // Messages
 
-  async sendMessage(userId: string, sessionId: string, content: string) {
+  async sendMessage(
+    userId: string,
+    sessionId: string,
+    content: string,
+    coords?: { lat: number; lng: number },
+  ) {
     await this.assertSessionOwnership(userId, sessionId);
 
     // 1. Persist user message first — never lose it even if the LLM call fails.
@@ -90,60 +114,130 @@ export class ConsultationsService {
       data: { sessionId, role: ChatRole.USER, content: content.trim() },
     });
 
-    // 2. Build the LLM input
+    // 2. Emergency intercept - this is determined from the user's message, no LLM
+    const emergency = this.emergencyGuardService.evaluate(content);
+    if (emergency.isEmergency) {
+      const assistantMessage = await this.prismaService.chatMessage.create({
+        data: {
+          sessionId,
+          role: ChatRole.ASSISTANT,
+          content: EMERGENCY_ADVISORY,
+          severity: ChatSeverity.HIGH,
+          isEmergency: true,
+          referralSuggested: true,
+        },
+      });
+
+      await this.touchAndTitle(sessionId, userMessage.content);
+      const hospitals = coords
+        ? await this.hospitals.nearby(coords.lat, coords.lng, 'high')
+        : undefined;
+
+      return {
+        userMessage,
+        assistantMessage,
+        severity: ChatSeverity.HIGH,
+        referralSuggested: true,
+        isEmergency: true,
+        hospitals,
+        disclaimer: DISCLAIMER,
+      };
+    }
+
+    // 3. Build the LLM prompt and call the structured LLM
     const messages = await this.promptBuilderService.buildMessages(
       userId,
       sessionId,
       userMessage.content,
+      emergency.heightenedTerms,
     );
 
-    // 3. Call LLM with retry+fallback; on total failure, save the graceful fallback message
-    let assistantContent: string;
+    // let assistantContent: string;
+    let assessment: AssessmentResult;
     let usedFallback = false;
     try {
-      assistantContent = await this.llmService.invoke(messages);
+      assessment = await this.llmService.invokeStructured(messages);
     } catch (err) {
       if (err instanceof ServiceUnavailableException) {
         this.logger.warn(
           `LLM unavailable for session=${sessionId}, using fallback response`,
         );
-        assistantContent = FALLBACK_RESPONSE;
+        // assistantContent = FALLBACK_RESPONSE;
+        assessment = {
+          assessment: FALLBACK_RESPONSE,
+          severity: 'low',
+          referralSuggested: false,
+        };
         usedFallback = true;
       } else {
         throw err;
       }
     }
 
-    // 4. Persist assistant message
+    // 4. Post-LLM output validation.
+    let finalContent = assessment.assessment;
+    const validation = this.outputValidatorService.validate(finalContent);
+    if (!validation.ok) {
+      this.logger.warn(
+        `Output validator intercepted response for session=${sessionId}: ` +
+          `${validation.reasons.join('; ')}. Original: ${finalContent.slice(0, 300)}`,
+      );
+      finalContent = VALIDATOR_FALLBACK;
+    }
+    // 5. Severity floor: if Group B triggered, never record below MODERATE.
+    let severity = this.severityToEnum[assessment.severity];
+    if (emergency.heightenedTerms.length > 0 && severity === ChatSeverity.LOW) {
+      severity = ChatSeverity.MODERATE;
+    }
+    const referralSuggested =
+      assessment.referralSuggested || severity === ChatSeverity.HIGH;
+
+    // 6. Persist assistant message
     const assistantMessage = await this.prismaService.chatMessage.create({
       data: {
         sessionId,
         role: ChatRole.ASSISTANT,
-        content: assistantContent,
-        // severity / isEmergency / referralSuggested populated in Day 4
+        content: finalContent,
+        severity,
+        isEmergency: false,
+        referralSuggested,
       },
     });
 
+    await this.touchAndTitle(sessionId, userMessage.content);
+
+    // 7. Pre-fetch hospitals only when high severity AND we have coordinates.
+    const hospitals =
+      coords && severity === ChatSeverity.HIGH
+        ? await this.hospitals.nearby(coords.lat, coords.lng, 'high')
+        : undefined;
+
     // 5. Touch the session so listSessions orders correctly
+    // 6. Auto-title on first exchange
+    // await this.maybeGenerateSessionTitle(sessionId, userMessage.content);
+
+    return {
+      userMessage,
+      assistantMessage,
+      severity,
+      referralSuggested,
+      isEmergency: false,
+      usedFallback,
+      hospitals,
+      disclaimer: DISCLAIMER,
+    };
+  }
+
+  // Helpers
+
+  private async touchAndTitle(sessionId: string, firstUserMessage: string) {
     await this.prismaService.chatSession.update({
       where: { id: sessionId },
       data: { updatedAt: new Date() },
     });
 
-    // 6. Auto-title on first exchange
-    await this.maybeGenerateSessionTitle(sessionId, userMessage.content);
-
-    return {
-      userMessage,
-      assistantMessage,
-      severity: null,
-      referralSuggested: false,
-      isEmergency: false,
-      usedFallback,
-    };
+    await this.maybeGenerateSessionTitle(sessionId, firstUserMessage);
   }
-
-  // Helpers
 
   private async assertSessionOwnership(userId: string, sessionId: string) {
     const session = await this.prismaService.chatSession.findUnique({
