@@ -80,11 +80,11 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 7.9.1
+ * Prisma Client JS version: 7.9.0
  * Query Engine version: e922089b7d7502aff4249d5da3420f6fa55fc6ad
  */
 export const prismaVersion: PrismaVersion = {
-  client: "7.9.1",
+  client: "7.9.0",
   engine: "e922089b7d7502aff4249d5da3420f6fa55fc6ad"
 }
 
@@ -915,6 +915,9 @@ export const UserScalarFieldEnum = {
   gender: 'gender',
   preferredLanguage: 'preferredLanguage',
   role: 'role',
+  emailVerified: 'emailVerified',
+  authProvider: 'authProvider',
+  googleId: 'googleId',
   emailVerificationToken: 'emailVerificationToken',
   emailVerificationExpiresAt: 'emailVerificationExpiresAt',
   passwordResetToken: 'passwordResetToken',
@@ -1097,6 +1100,27 @@ export type ListEnumUserRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthProvider'
+ */
+export type EnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProvider'>
+    
+
+
+/**
+ * Reference to a field of type 'AuthProvider[]'
+ */
+export type ListEnumAuthProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AuthProvider[]'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1149,13 +1173,6 @@ export type EnumChatSeverityFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'ChatSeverity[]'
  */
 export type ListEnumChatSeverityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ChatSeverity[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 /**

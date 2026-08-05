@@ -12,7 +12,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(googleOauthConfig.KEY)
     private googleConfiguration: ConfigType<typeof googleOauthConfig>,
-    private authService: AuthService
+    private authService: AuthService,
   ) {
     super({
       clientID: googleConfiguration.clientID,
@@ -21,21 +21,27 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       scope: ['email', 'profile'], // the data we need to get back from the google API
     });
   }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-  async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback) {
-    console.log('profile..', profile)
-    const user = await this.authService.validateGoogleUser({
+
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: any,
+    done: VerifyCallback,
+  ) {
+    console.log('profile..', profile);
+    const user = await this.authService.validateOrCreateGoogleUser({
       firstName: profile.name.givenName,
       lastName: profile.name.familyName,
       email: profile.emails[0].value,
-      passwordHash: null, 
-    //   NOTE: Make passwordHash nullable in the Prisma schema (passwordHash String?) and pass null for OAuth-created users.
-    //   avatarUrl: profile.photos[0].value,
+      passwordHash: null,
+      googleId: profile.googleId,
+      //   NOTE: Make passwordHash nullable in the Prisma schema (passwordHash String?) and pass null for OAuth-created users.
+      //   avatarUrl: profile.photos[0].value,
       role: UserRole.USER,
-    //   isSocialAuth: true
-    })
+      //   isSocialAuth: true
+    });
     // return user;
-    done(null, user ?? false) // first arg: error object, second arg: user arg that will be passed to the request object.
+    done(null, user ?? false); // first arg: error object, second arg: user arg that will be passed to the request object.
 
     // to check if the user is registered in the db, if not we create a record in the db
   }

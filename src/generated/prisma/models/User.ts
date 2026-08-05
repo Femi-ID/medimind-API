@@ -44,6 +44,9 @@ export type UserMinAggregateOutputType = {
   gender: $Enums.Gender | null
   preferredLanguage: $Enums.PreferredLanguage | null
   role: $Enums.UserRole | null
+  emailVerified: boolean | null
+  authProvider: $Enums.AuthProvider | null
+  googleId: string | null
   emailVerificationToken: string | null
   emailVerificationExpiresAt: Date | null
   passwordResetToken: string | null
@@ -62,6 +65,9 @@ export type UserMaxAggregateOutputType = {
   gender: $Enums.Gender | null
   preferredLanguage: $Enums.PreferredLanguage | null
   role: $Enums.UserRole | null
+  emailVerified: boolean | null
+  authProvider: $Enums.AuthProvider | null
+  googleId: string | null
   emailVerificationToken: string | null
   emailVerificationExpiresAt: Date | null
   passwordResetToken: string | null
@@ -80,6 +86,9 @@ export type UserCountAggregateOutputType = {
   gender: number
   preferredLanguage: number
   role: number
+  emailVerified: number
+  authProvider: number
+  googleId: number
   emailVerificationToken: number
   emailVerificationExpiresAt: number
   passwordResetToken: number
@@ -108,6 +117,9 @@ export type UserMinAggregateInputType = {
   gender?: true
   preferredLanguage?: true
   role?: true
+  emailVerified?: true
+  authProvider?: true
+  googleId?: true
   emailVerificationToken?: true
   emailVerificationExpiresAt?: true
   passwordResetToken?: true
@@ -126,6 +138,9 @@ export type UserMaxAggregateInputType = {
   gender?: true
   preferredLanguage?: true
   role?: true
+  emailVerified?: true
+  authProvider?: true
+  googleId?: true
   emailVerificationToken?: true
   emailVerificationExpiresAt?: true
   passwordResetToken?: true
@@ -144,6 +159,9 @@ export type UserCountAggregateInputType = {
   gender?: true
   preferredLanguage?: true
   role?: true
+  emailVerified?: true
+  authProvider?: true
+  googleId?: true
   emailVerificationToken?: true
   emailVerificationExpiresAt?: true
   passwordResetToken?: true
@@ -249,6 +267,9 @@ export type UserGroupByOutputType = {
   gender: $Enums.Gender | null
   preferredLanguage: $Enums.PreferredLanguage
   role: $Enums.UserRole
+  emailVerified: boolean
+  authProvider: $Enums.AuthProvider
+  googleId: string | null
   emailVerificationToken: string | null
   emailVerificationExpiresAt: Date | null
   passwordResetToken: string | null
@@ -290,6 +311,9 @@ export type UserWhereInput = {
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFilter<"User"> | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
+  authProvider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
+  googleId?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerificationToken?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerificationExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -312,6 +336,9 @@ export type UserOrderByWithRelationInput = {
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  authProvider?: Prisma.SortOrder
+  googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerificationExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -327,6 +354,7 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
+  googleId?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -337,6 +365,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFilter<"User"> | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
+  emailVerified?: Prisma.BoolFilter<"User"> | boolean
+  authProvider?: Prisma.EnumAuthProviderFilter<"User"> | $Enums.AuthProvider
   emailVerificationToken?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerificationExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   passwordResetToken?: Prisma.StringNullableFilter<"User"> | string | null
@@ -347,7 +377,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.SessionListRelationFilter
   chatSessions?: Prisma.ChatSessionListRelationFilter
   referrals?: Prisma.HospitalReferralListRelationFilter
-}, "id" | "email">
+}, "id" | "email" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -359,6 +389,9 @@ export type UserOrderByWithAggregationInput = {
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  authProvider?: Prisma.SortOrder
+  googleId?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerificationExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -385,6 +418,9 @@ export type UserScalarWhereWithAggregatesInput = {
   gender?: Prisma.EnumGenderNullableWithAggregatesFilter<"User"> | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageWithAggregatesFilter<"User"> | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
+  emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  authProvider?: Prisma.EnumAuthProviderWithAggregatesFilter<"User"> | $Enums.AuthProvider
+  googleId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   emailVerificationToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   emailVerificationExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   passwordResetToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -403,6 +439,9 @@ export type UserCreateInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -425,6 +464,9 @@ export type UserUncheckedCreateInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -447,6 +489,9 @@ export type UserUpdateInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -469,6 +514,9 @@ export type UserUncheckedUpdateInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -491,6 +539,9 @@ export type UserCreateManyInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -509,6 +560,9 @@ export type UserUpdateManyMutationInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -527,6 +581,9 @@ export type UserUncheckedUpdateManyInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -545,6 +602,9 @@ export type UserCountOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  authProvider?: Prisma.SortOrder
+  googleId?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrder
   emailVerificationExpiresAt?: Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrder
@@ -567,6 +627,9 @@ export type UserMaxOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  authProvider?: Prisma.SortOrder
+  googleId?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrder
   emailVerificationExpiresAt?: Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrder
@@ -585,6 +648,9 @@ export type UserMinOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
+  emailVerified?: Prisma.SortOrder
+  authProvider?: Prisma.SortOrder
+  googleId?: Prisma.SortOrder
   emailVerificationToken?: Prisma.SortOrder
   emailVerificationExpiresAt?: Prisma.SortOrder
   passwordResetToken?: Prisma.SortOrder
@@ -628,6 +694,14 @@ export type EnumPreferredLanguageFieldUpdateOperationsInput = {
 
 export type EnumUserRoleFieldUpdateOperationsInput = {
   set?: $Enums.UserRole
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type EnumAuthProviderFieldUpdateOperationsInput = {
+  set?: $Enums.AuthProvider
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -704,6 +778,9 @@ export type UserCreateWithoutSessionsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -725,6 +802,9 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -762,6 +842,9 @@ export type UserUpdateWithoutSessionsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -783,6 +866,9 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -804,6 +890,9 @@ export type UserCreateWithoutVitalsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -825,6 +914,9 @@ export type UserUncheckedCreateWithoutVitalsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -862,6 +954,9 @@ export type UserUpdateWithoutVitalsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -883,6 +978,9 @@ export type UserUncheckedUpdateWithoutVitalsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -904,6 +1002,9 @@ export type UserCreateWithoutChatSessionsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -925,6 +1026,9 @@ export type UserUncheckedCreateWithoutChatSessionsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -962,6 +1066,9 @@ export type UserUpdateWithoutChatSessionsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -983,6 +1090,9 @@ export type UserUncheckedUpdateWithoutChatSessionsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1004,6 +1114,9 @@ export type UserCreateWithoutReferralsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -1025,6 +1138,9 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   gender?: $Enums.Gender | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
+  emailVerified?: boolean
+  authProvider?: $Enums.AuthProvider
+  googleId?: string | null
   emailVerificationToken?: string | null
   emailVerificationExpiresAt?: Date | string | null
   passwordResetToken?: string | null
@@ -1062,6 +1178,9 @@ export type UserUpdateWithoutReferralsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1083,6 +1202,9 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  authProvider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerificationExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordResetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1162,6 +1284,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   gender?: boolean
   preferredLanguage?: boolean
   role?: boolean
+  emailVerified?: boolean
+  authProvider?: boolean
+  googleId?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpiresAt?: boolean
   passwordResetToken?: boolean
@@ -1185,6 +1310,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   gender?: boolean
   preferredLanguage?: boolean
   role?: boolean
+  emailVerified?: boolean
+  authProvider?: boolean
+  googleId?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpiresAt?: boolean
   passwordResetToken?: boolean
@@ -1203,6 +1331,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   gender?: boolean
   preferredLanguage?: boolean
   role?: boolean
+  emailVerified?: boolean
+  authProvider?: boolean
+  googleId?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpiresAt?: boolean
   passwordResetToken?: boolean
@@ -1221,6 +1352,9 @@ export type UserSelectScalar = {
   gender?: boolean
   preferredLanguage?: boolean
   role?: boolean
+  emailVerified?: boolean
+  authProvider?: boolean
+  googleId?: boolean
   emailVerificationToken?: boolean
   emailVerificationExpiresAt?: boolean
   passwordResetToken?: boolean
@@ -1229,7 +1363,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "firstName" | "lastName" | "age" | "gender" | "preferredLanguage" | "role" | "emailVerificationToken" | "emailVerificationExpiresAt" | "passwordResetToken" | "passwordResetExpiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "firstName" | "lastName" | "age" | "gender" | "preferredLanguage" | "role" | "emailVerified" | "authProvider" | "googleId" | "emailVerificationToken" | "emailVerificationExpiresAt" | "passwordResetToken" | "passwordResetExpiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   vitals?: boolean | Prisma.User$vitalsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1258,6 +1392,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     gender: $Enums.Gender | null
     preferredLanguage: $Enums.PreferredLanguage
     role: $Enums.UserRole
+    emailVerified: boolean
+    authProvider: $Enums.AuthProvider
+    googleId: string | null
     emailVerificationToken: string | null
     emailVerificationExpiresAt: Date | null
     passwordResetToken: string | null
@@ -1700,6 +1837,9 @@ export interface UserFieldRefs {
   readonly gender: Prisma.FieldRef<"User", 'Gender'>
   readonly preferredLanguage: Prisma.FieldRef<"User", 'PreferredLanguage'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
+  readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>
+  readonly authProvider: Prisma.FieldRef<"User", 'AuthProvider'>
+  readonly googleId: Prisma.FieldRef<"User", 'String'>
   readonly emailVerificationToken: Prisma.FieldRef<"User", 'String'>
   readonly emailVerificationExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly passwordResetToken: Prisma.FieldRef<"User", 'String'>

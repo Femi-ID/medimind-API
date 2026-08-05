@@ -1,5 +1,5 @@
 import {
-    BadRequestException,
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -41,6 +41,13 @@ export class AuthService {
     const user = await this.usersService.getUserByEmail(email);
     if (!user) throw new NotFoundException('User not found..');
 
+    // if the user created an account through google
+    if (!user.passwordHash) {
+      throw new UnauthorizedException(
+        'This account uses Google sign-in. Please continue with Google.',
+      );
+    }
+
     const isPasswordValid = await this.verifyPassword(
       user.passwordHash,
       password,
@@ -65,7 +72,7 @@ export class AuthService {
   }
 
   async verifyPassword(
-    hashedPassword: string| null,
+    hashedPassword: string | null,
     plainPassword: string,
   ): Promise<boolean> {
     try {
@@ -99,22 +106,27 @@ export class AuthService {
 
   async validateRefreshToken(payload: JwtPayloadDto, refreshToken: string) {
     try {
-        // const user = await this.usersService.getUserById(payload.sub);
-        const session = await this.prismaService.session.findFirst({
-            where: { 
-                id: payload.sub, 
-                revokedAt: null, 
-                expiresAt: { gt: new Date() },
-            }, 
-            orderBy: { createdAt: 'desc'}
-        });
-        this.logger.log(`user session- ${session}`)
-            if (!session?.refreshTokenHash) throw new UnauthorizedException('No valid refresh token from the db!')
+      // const user = await this.usersService.getUserById(payload.sub);
+      const session = await this.prismaService.session.findFirst({
+        where: {
+          id: payload.sub,
+          revokedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      this.logger.log(`user session- ${JSON.stringify(session)}`);
+      if (!session?.refreshTokenHash)
+        throw new UnauthorizedException('No valid refresh token from the db!');
 
-            const refreshTokenMatches = await argon2.verify(session.refreshTokenHash, refreshToken)
-            if(!refreshTokenMatches) throw new UnauthorizedException('Invalid refresh token match!')
-                return { id: payload.sub, email: payload.email, role: payload.role }
-    } catch(error) {
+      const refreshTokenMatches = await argon2.verify(
+        session.refreshTokenHash,
+        refreshToken,
+      );
+      if (!refreshTokenMatches)
+        throw new UnauthorizedException('Invalid refresh token match!');
+      return { id: payload.sub, email: payload.email, role: payload.role };
+    } catch (error) {
       this.logger.error(error);
       throw new UnauthorizedException({
         message: 'Unable to validate refresh token...',
@@ -123,18 +135,18 @@ export class AuthService {
   }
 
   async generateNewTokens(payload: JwtPayloadDto) {
-    const { accessToken, refreshToken } = await this.generateNewTokens(payload);
-    // await this.usersService.hashAndStoreRefreshToken(payload.sub, refreshToken); 
+    const { accessToken, refreshToken } = await this.generateTokens(payload);
+    // await this.usersService.hashAndStoreRefreshToken(payload.sub, refreshToken);
 
     this.logger.log({ accessToken: accessToken, refreshToken: refreshToken });
-    return { accessToken: accessToken, refreshToken: refreshToken }
+    return { accessToken: accessToken, refreshToken: refreshToken };
   }
 
-  async validateGoogleUser(googleUser: CreateGoogleUserDto) {
-    console.log('google user..', googleUser)
+  async validateOrCreateGoogleUser(googleUser: CreateGoogleUserDto) {
+    // console.log('google user..', googleUser);
     const user = this.usersService.getUserByEmail(googleUser.email);
-    if (user) return user // user already exists in the db, no need to create user account
-    const newUser =  await this.usersService.signUpSocialAccount(googleUser);
+    if (user) return user; // user already exists in the db, no need to create user account
+    const newUser = await this.usersService.createGoogleUser(googleUser);
     return newUser;
   }
 }

@@ -6,7 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
+import { AuthProvider, Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon2 from 'argon2';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -89,31 +89,45 @@ export class UsersService {
         lastName: true,
         createdAt: true,
         updatedAt: true,
-      }
-    //   include: {
-    //     vitals: {
-    //       select: {
-    //         id: true,
-    //         diastolicBp: true,
-    //         systolicBp: true,
-    //       },
-    //     },
-    //   },
+      },
+      //   include: {
+      //     vitals: {
+      //       select: {
+      //         id: true,
+      //         diastolicBp: true,
+      //         systolicBp: true,
+      //       },
+      //     },
+      //   },
     });
     if (!user) throw new NotFoundException('User not found..');
     return user;
   }
 
-  async signUpSocialAccount(createGoogleUserDto: CreateGoogleUserDto) {
+  async getUserByGoogleId(googleId: string) {
+    return await this.prismaService.user.findUnique({ where: { googleId } });
+  }
+
+  async createGoogleUser(createGoogleUserDto: CreateGoogleUserDto) {
     try {
-        const newUser = await this.prismaService.user.create({ data: { ...createGoogleUserDto}})
-        console.log('new user created via google..', newUser);
-        return newUser;
+      const user = await this.getUserByGoogleId(createGoogleUserDto.googleId);
+      if (user) return user;
+
+      const newUser = await this.prismaService.user.create({
+        data: {
+          emailVerified: true,
+          authProvider: AuthProvider.GOOGLE,
+          ...createGoogleUserDto,
+        },
+      });
+
+      this.logger.log('new user created via google..', newUser);
+      return newUser;
     } catch (error) {
-        this.logger.error(error);
-        throw new UnauthorizedException({
+      this.logger.error(error);
+      throw new UnauthorizedException({
         message: 'Unable to create new user...',
-        });
+      });
     }
   }
 }

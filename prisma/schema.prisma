@@ -4,7 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
+  provider     = "prisma-client"
   // output   = "../generated/prisma"
   output       = "../src/generated/prisma"
   moduleFormat = "cjs"
@@ -24,6 +24,9 @@ model User {
   gender                     Gender?
   preferredLanguage          PreferredLanguage @default(ENGLISH)
   role                       UserRole          @default(USER)
+  emailVerified              Boolean           @default(false)
+  authProvider               AuthProvider      @default(LOCAL)
+  googleId                   String?           @unique
   emailVerificationToken     String?
   emailVerificationExpiresAt DateTime?
   passwordResetToken         String?
@@ -56,6 +59,11 @@ enum PreferredLanguage {
 enum UserRole {
   ADMIN
   USER
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
 }
 
 model Session {
@@ -109,7 +117,7 @@ model ChatMessage {
   sessionId         String
   role              ChatRole      @default(USER)
   content           String        @db.Text
-  severity          ChatSeverity? @default(NULL)
+  severity          ChatSeverity?
   isEmergency       Boolean       @default(false)
   referralSuggested Boolean       @default(false)
   createdAt         DateTime      @default(now())
@@ -127,7 +135,6 @@ enum ChatSeverity {
   LOW
   MODERATE
   HIGH
-  NULL
 }
 
 model HospitalReferral {

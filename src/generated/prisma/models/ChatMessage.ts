@@ -433,10 +433,6 @@ export type NullableEnumChatSeverityFieldUpdateOperationsInput = {
   set?: $Enums.ChatSeverity | null
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type ChatMessageCreateWithoutSessionInput = {
   id?: string
   role?: $Enums.ChatRole

@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth-guard';
 import { VitalsModule } from './vitals/vitals.module';
+import { ConsultationsModule } from './consultations/consultations.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { VitalsModule } from './vitals/vitals.module';
       expandVariables: true,
     }),
     VitalsModule,
+    ConsultationsModule,
   ],
   controllers: [AppController],
   providers: [

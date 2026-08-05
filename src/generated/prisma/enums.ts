@@ -37,6 +37,14 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
+export const AuthProvider = {
+  LOCAL: 'LOCAL',
+  GOOGLE: 'GOOGLE'
+} as const
+
+export type AuthProvider = (typeof AuthProvider)[keyof typeof AuthProvider]
+
+
 export const ChatRole = {
   USER: 'USER',
   ASSISTANT: 'ASSISTANT'
@@ -48,8 +56,7 @@ export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole]
 export const ChatSeverity = {
   LOW: 'LOW',
   MODERATE: 'MODERATE',
-  HIGH: 'HIGH',
-  NULL: 'NULL'
+  HIGH: 'HIGH'
 } as const
 
 export type ChatSeverity = (typeof ChatSeverity)[keyof typeof ChatSeverity]

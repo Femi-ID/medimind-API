@@ -26,8 +26,12 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Request() req: UserRequest, @Body() loginUserDto: LoginUserDto) {
-    return this.authService.login(req.user.id, req.user.email, req.user.role);
+  async login(@Request() req: UserRequest, @Body() loginUserDto: LoginUserDto) {
+    return await this.authService.login(
+      req.user.id,
+      req.user.email,
+      req.user.role,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -62,8 +66,8 @@ export class AuthController {
   @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  async googleCallbackUrl(@Request() req) {
-    console.log('user request..', req.user);
+  async googleCallbackUrl(@Request() req: UserRequest) {
+    console.log('user request..', req.user.id);
     const response = await this.authService.login(
       req.user.id,
       req.user.email,

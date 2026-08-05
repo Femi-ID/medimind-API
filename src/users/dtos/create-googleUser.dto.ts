@@ -1,4 +1,10 @@
-import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Gender, UserRole } from 'src/generated/prisma/enums';
 
 export class CreateGoogleUserDto {
@@ -25,9 +31,9 @@ export class CreateGoogleUserDto {
   @IsOptional()
   gender?: Gender;
 
-  // @IsOptional()
-  // @IsString()
-  // avatarUrl?: string;
+  @IsString()
+  @IsNotEmpty()
+  googleId!: string;
 
   @IsEnum(UserRole)
   @IsNotEmpty()
