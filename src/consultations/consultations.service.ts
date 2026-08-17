@@ -18,6 +18,7 @@ import {
 } from './constants/safety';
 import { EmergencyGuardService } from './emergency-guard.service';
 import { OutputValidatorService } from './output-validator.service';
+import { HospitalsService } from 'src/hospitals/hospitals.service';
 
 @Injectable()
 export class ConsultationsService {
@@ -100,21 +101,20 @@ export class ConsultationsService {
   }
 
   // Messages
-
   async sendMessage(
     userId: string,
     sessionId: string,
     content: string,
-    coords?: { lat: number; lng: number },
+    coordinates?: { lat: number; lng: number },
   ) {
     await this.assertSessionOwnership(userId, sessionId);
 
-    // 1. Persist user message first — never lose it even if the LLM call fails.
+    // Persist user message first- never lose it even if the LLM call fails.
     const userMessage = await this.prismaService.chatMessage.create({
       data: { sessionId, role: ChatRole.USER, content: content.trim() },
     });
 
-    // 2. Emergency intercept - this is determined from the user's message, no LLM
+    // Emergency intercept - this is determined from the user's message, no LLM
     const emergency = this.emergencyGuardService.evaluate(content);
     if (emergency.isEmergency) {
       const assistantMessage = await this.prismaService.chatMessage.create({
@@ -129,8 +129,12 @@ export class ConsultationsService {
       });
 
       await this.touchAndTitle(sessionId, userMessage.content);
-      const hospitals = coords
-        ? await this.hospitals.nearby(coords.lat, coords.lng, 'high')
+      const hospitals = coordinates
+        ? await this.hospitalsService.nearby(
+            coordinates.lat,
+            coordinates.lng,
+            'high',
+          )
         : undefined;
 
       return {
@@ -144,7 +148,7 @@ export class ConsultationsService {
       };
     }
 
-    // 3. Build the LLM prompt and call the structured LLM
+    // if !emergency Build the LLM prompt and call the structured LLM
     const messages = await this.promptBuilderService.buildMessages(
       userId,
       sessionId,
@@ -152,29 +156,27 @@ export class ConsultationsService {
       emergency.heightenedTerms,
     );
 
-    // let assistantContent: string;
     let assessment: AssessmentResult;
     let usedFallback = false;
     try {
       assessment = await this.llmService.invokeStructured(messages);
     } catch (err) {
       if (err instanceof ServiceUnavailableException) {
-        this.logger.warn(
-          `LLM unavailable for session=${sessionId}, using fallback response`,
-        );
-        // assistantContent = FALLBACK_RESPONSE;
         assessment = {
           assessment: FALLBACK_RESPONSE,
           severity: 'low',
           referralSuggested: false,
         };
         usedFallback = true;
+        this.logger.warn(
+          `LLM unavailable for session=${sessionId}, using fallback response`,
+        );
       } else {
         throw err;
       }
     }
 
-    // 4. Post-LLM output validation.
+    // Post-LLM output validation.
     let finalContent = assessment.assessment;
     const validation = this.outputValidatorService.validate(finalContent);
     if (!validation.ok) {
@@ -184,7 +186,7 @@ export class ConsultationsService {
       );
       finalContent = VALIDATOR_FALLBACK;
     }
-    // 5. Severity floor: if Group B triggered, never record below MODERATE.
+    // Severity floor, never record below MODERATE.
     let severity = this.severityToEnum[assessment.severity];
     if (emergency.heightenedTerms.length > 0 && severity === ChatSeverity.LOW) {
       severity = ChatSeverity.MODERATE;
@@ -192,7 +194,7 @@ export class ConsultationsService {
     const referralSuggested =
       assessment.referralSuggested || severity === ChatSeverity.HIGH;
 
-    // 6. Persist assistant message
+    // Persist assistant message
     const assistantMessage = await this.prismaService.chatMessage.create({
       data: {
         sessionId,
@@ -206,15 +208,15 @@ export class ConsultationsService {
 
     await this.touchAndTitle(sessionId, userMessage.content);
 
-    // 7. Pre-fetch hospitals only when high severity AND we have coordinates.
+    // Pre-fetch hospitals only when high severity AND we have coordinates.
     const hospitals =
-      coords && severity === ChatSeverity.HIGH
-        ? await this.hospitals.nearby(coords.lat, coords.lng, 'high')
+      coordinates && severity === ChatSeverity.HIGH
+        ? await this.hospitalsService.nearby(
+            coordinates.lat,
+            coordinates.lng,
+            'high',
+          )
         : undefined;
-
-    // 5. Touch the session so listSessions orders correctly
-    // 6. Auto-title on first exchange
-    // await this.maybeGenerateSessionTitle(sessionId, userMessage.content);
 
     return {
       userMessage,
@@ -230,6 +232,7 @@ export class ConsultationsService {
 
   // Helpers
 
+  // Touch updatedAt so listSessions orders correctly, then auto-title if first exchange.
   private async touchAndTitle(sessionId: string, firstUserMessage: string) {
     await this.prismaService.chatSession.update({
       where: { id: sessionId },
@@ -259,7 +262,7 @@ export class ConsultationsService {
     if (!session || session.title !== 'New consultation') return;
     if (session._count.messages !== 2) return; // exactly 1 user + 1 assistant
 
-    // or use an ai to generate a title based on the context of the first message
+    // NOTE/TODO: or use an ai to generate a title based on the context of the first message
     const title =
       firstUserMessage.slice(0, 40).trim() +
       (firstUserMessage.length > 40 ? '…' : '');

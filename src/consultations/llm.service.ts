@@ -15,21 +15,21 @@ import { Runnable } from '@langchain/core/runnables';
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
-  private readonly primary: ChatGroq;
-  private readonly fallback: ChatGroq;
+  private readonly primaryModel: ChatGroq;
+  private readonly fallbackModel: ChatGroq;
 
   constructor(private readonly config: ConfigService) {
     const apiKey = this.config.getOrThrow<string>('GROQ_API_KEY');
     const common = { apiKey, temperature: 0.3, maxTokens: 800 };
 
-    this.primary = new ChatGroq({
+    this.primaryModel = new ChatGroq({
       ...common,
       model: this.config.get<string>(
         'GROQ_MODEL_PRIMARY',
         'llama-3.3-70b-versatile',
       ),
     });
-    this.fallback = new ChatGroq({
+    this.fallbackModel = new ChatGroq({
       ...common,
       model: this.config.get<string>(
         'GROQ_MODEL_FALLBACK',
@@ -39,11 +39,11 @@ export class LlmService {
   }
 
   async invokeStructured(messages: BaseMessage[]): Promise<AssessmentResult> {
-    const primaryStructured = this.primary.withStructuredOutput(
+    const primaryStructured = this.primaryModel.withStructuredOutput(
       assessmentSchema,
       { name: 'health_assessment' },
     );
-    const fallbackStructured = this.fallback.withStructuredOutput(
+    const fallbackStructured = this.fallbackModel.withStructuredOutput(
       assessmentSchema,
       { name: 'health_assessment' },
     );
@@ -77,11 +77,10 @@ export class LlmService {
     const delaysMs = [0, 2000, 5000];
     let lastErr: unknown;
     for (const delay of delaysMs) {
-      if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+      if (delay > 0) await new Promise((r) => setTimeout(r, delay)); // at the second attempt
       try {
         return await runnable.invoke(messages);
         // return response.content.toString().trim();
-        // return JSON.stringify(response.content).trim();
       } catch (err) {
         lastErr = err;
         if (!this.isRetryable(err)) throw err;

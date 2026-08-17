@@ -4,11 +4,12 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth-guard';
 import { VitalsModule } from './vitals/vitals.module';
 import { ConsultationsModule } from './consultations/consultations.module';
+import { HospitalsModule } from './hospitals/hospitals.module';
 
 @Module({
   imports: [
@@ -22,10 +23,11 @@ import { ConsultationsModule } from './consultations/consultations.module';
     }),
     VitalsModule,
     ConsultationsModule,
+    HospitalsModule,
   ],
   controllers: [AppController],
   providers: [
-    AppService, 
+    AppService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

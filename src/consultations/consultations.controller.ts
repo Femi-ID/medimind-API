@@ -19,12 +19,13 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
 @Controller('consultations')
 export class ConsultationsController {
   constructor(private readonly consultationsService: ConsultationsService) {}
 
   @ApiOperation({ summary: 'Start a new consultation session' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Post('sessions')
   async createSession(
     @Request() req: UserRequest,
@@ -37,7 +38,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'List consultation sessions for the current user' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Get('sessions')
   async listSessions(
     @Request() req: UserRequest,
@@ -52,7 +53,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'Fetch a session with its full message history' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Get('sessions/:id')
   async getSession(
     @Request() req: UserRequest,
@@ -62,7 +63,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'Rename a session' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Patch('sessions/:id')
   async updateSession(
     @Request() req: UserRequest,
@@ -77,7 +78,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'Delete a session and all its messages' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Delete('sessions/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSession(
@@ -95,7 +96,7 @@ export class ConsultationsController {
     description:
       "Persists the user message, injects the user's latest vitals and recent conversation history into the prompt, calls the LLM, and returns the assistant reply.",
   })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Post('send-message')
   async sendMessage(
     @Request() req: UserRequest,
