@@ -16,7 +16,14 @@ import { QueryVitalsDto } from './dtos/query-vitals.dto';
 import { TrendsQueryDto } from './dtos/trends-query.dto';
 import { UpdateVitalsDto } from './dtos/update-vitals.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
+import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
 
+@SkipThrottle({
+  [CustomThrottlers.STRICT]: true, // this bypasses the global DEFAULT throttler
+  [CustomThrottlers.MODERATE]: true, // wakes up the STRICT throttler with the same setting set in app.module.ts
+  // allows DEFAULT throttler to run with default settings.
+})
 @ApiBearerAuth('access-token')
 @Controller('vitals')
 export class VitalsController {

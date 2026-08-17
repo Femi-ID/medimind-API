@@ -17,7 +17,14 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { Public } from './decorators/public.decorators';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { SkipThrottle } from '@nestjs/throttler';
+import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
 
+@SkipThrottle({
+  [CustomThrottlers.DEFAULT]: true, // sets DEFAULT off
+  [CustomThrottlers.MODERATE]: true, // skips MODERATE off
+  // allows STRICT throttler to run with default settings.
+})
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

@@ -18,7 +18,14 @@ import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
+import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
 
+@SkipThrottle({
+  [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
+  [CustomThrottlers.STRICT]: true, // wakes up the STRICT throttler with the same setting set in app.module.ts
+  // allows MODERATE throttler to run with default settings.
+})
 @ApiBearerAuth('access-token')
 @Controller('consultations')
 export class ConsultationsController {

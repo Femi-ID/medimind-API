@@ -4,7 +4,14 @@ import { HospitalsService } from './hospitals.service';
 import { NearbyQueryDto } from './dto/nearby-query.dto';
 import type { UserRequest } from 'src/users/type/request.interface';
 import { CreateReferralDto } from './dto/create-referral.dto';
+import { SkipThrottle } from '@nestjs/throttler';
+import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
 
+@SkipThrottle({
+  [CustomThrottlers.STRICT]: true, // this bypasses the global DEFAULT throttler
+  [CustomThrottlers.MODERATE]: true, // wakes up the STRICT throttler with the same setting set in app.module.ts
+  // allows DEFAULT throttler to run with default settings.
+})
 @ApiTags('hospitals')
 @ApiBearerAuth('access-token')
 @Controller('hospitals')
