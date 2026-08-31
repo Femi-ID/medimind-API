@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -20,6 +21,8 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
+import { OutputValidatorService } from './output-validator.service';
+import { Public } from 'src/auth/decorators/public.decorators';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -29,7 +32,10 @@ import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constan
 @ApiBearerAuth('access-token')
 @Controller('consultations')
 export class ConsultationsController {
-  constructor(private readonly consultationsService: ConsultationsService) {}
+  constructor(
+    private readonly consultationsService: ConsultationsService,
+    private readonly outputValidatorService: OutputValidatorService,
+  ) {}
 
   @ApiOperation({ summary: 'Start a new consultation session' })
   // @ApiBearerAuth('access-token')
@@ -104,7 +110,7 @@ export class ConsultationsController {
       "Persists the user message, injects the user's latest vitals and recent conversation history into the prompt, calls the LLM, and returns the assistant reply.",
   })
   // @ApiBearerAuth('access-token')
-  @Post('send-message')
+  @Post('messages')
   async sendMessage(
     @Request() req: UserRequest,
     @Body() sendMessageDto: SendMessageDto,
@@ -133,5 +139,12 @@ export class ConsultationsController {
     );
 
     return { sessionId, isNewSession, ...result };
+  }
+
+  @Public()
+  @Post('_debug/validate-output')
+  debugValidate(@Body() b: { text: string }) {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    return this.outputValidatorService.validate(b.text);
   }
 }

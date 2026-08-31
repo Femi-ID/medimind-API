@@ -4,8 +4,10 @@ import {
   Delete,
   Get,
   Logger,
+  Patch,
   Post,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -13,9 +15,11 @@ import { UsersService } from './users.service';
 import type { UserRequest } from './type/request.interface';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
 import { SkipThrottle } from '@nestjs/throttler';
+import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import type { Response } from 'express';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -42,18 +46,62 @@ export class UsersController {
     return await this.usersService.getUserProfile(req.user.id);
   }
 
-  // TODO: NO SERVICE FUNCTIONS FOR THIS YET!
+  // TODO: NO SERVICE FUNCTIONS FOR THESE YET!
   @SkipThrottle({
     [CustomThrottlers.DEFAULT]: true,
     [CustomThrottlers.MODERATE]: true,
   })
+  @ApiBearerAuth('access-token')
   @Post('me/change-password')
-  changePassword(/* ... */) {}
+  async changePassword(
+    @Request() req: UserRequest,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    return await this.usersService.changePassword(
+      req.user.id,
+      currentPassword,
+      newPassword,
+    );
+  }
 
   @SkipThrottle({
     [CustomThrottlers.DEFAULT]: true,
     [CustomThrottlers.MODERATE]: true,
   })
+  @ApiBearerAuth('access-token')
   @Delete('me')
-  deleteAccount(/* ... */) {}
+  async deleteAccount(@Request() req: UserRequest, password: string) {
+    return await this.usersService.softDelete(req.user.id, password);
+  }
+
+  @Patch('me')
+  @ApiBearerAuth('access-token')
+  async updateUserProfile(
+    @Request() req: UserRequest,
+    updateUserProfileDto: UpdateUserProfileDto,
+  ) {
+    return await this.usersService.updateProfile(
+      req.user.id,
+      updateUserProfileDto,
+    );
+  }
+
+  @Get('me/export')
+  @ApiOperation({ summary: 'Download all of your data as JSON' })
+  @ApiBearerAuth('access-token')
+  async export(
+    @Request() req: UserRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const data = await this.usersService.exportData(req.user.id);
+    const date = new Date().toISOString().slice(0, 10);
+    // const safeId = req.user.id.replace(/[^a-zA-Z0-9-]/g, '');
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="medimind-export-${req.user.id}-${date}.json"`,
+    );
+    return data;
+  }
 }

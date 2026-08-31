@@ -26,14 +26,14 @@ export class LlmService {
       ...common,
       model: this.config.get<string>(
         'GROQ_MODEL_PRIMARY',
-        'llama-3.3-70b-versatile',
+        'openai/gpt-oss-120b',
       ),
     });
     this.fallbackModel = new ChatGroq({
       ...common,
       model: this.config.get<string>(
         'GROQ_MODEL_FALLBACK',
-        'llama-3.1-8b-instant',
+        'openai/gpt-oss-20b',
       ),
     });
   }

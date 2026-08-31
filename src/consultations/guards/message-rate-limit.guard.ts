@@ -14,7 +14,7 @@ export class MessageRateLimitGuard implements CanActivate {
   private readonly limit = 20;
   private readonly windowMs = 60 * 60 * 1000;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
@@ -22,7 +22,7 @@ export class MessageRateLimitGuard implements CanActivate {
     if (!userId) throw new UnauthorizedException();
 
     const since = new Date(Date.now() - this.windowMs);
-    const count = await this.prisma.chatMessage.count({
+    const count = await this.prismaService.chatMessage.count({
       where: {
         role: ChatRole.USER,
         createdAt: { gte: since },

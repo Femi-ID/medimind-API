@@ -156,13 +156,13 @@ export class ConsultationsService {
       emergency.heightenedTerms,
     );
 
-    let assessment: AssessmentResult;
+    let assessmentResult: AssessmentResult;
     let usedFallback = false;
     try {
-      assessment = await this.llmService.invokeStructured(messages);
+      assessmentResult = await this.llmService.invokeStructured(messages);
     } catch (err) {
       if (err instanceof ServiceUnavailableException) {
-        assessment = {
+        assessmentResult = {
           assessment: FALLBACK_RESPONSE,
           severity: 'low',
           referralSuggested: false,
@@ -177,7 +177,7 @@ export class ConsultationsService {
     }
 
     // Post-LLM output validation.
-    let finalContent = assessment.assessment;
+    let finalContent = assessmentResult.assessment;
     const validation = this.outputValidatorService.validate(finalContent);
     if (!validation.ok) {
       this.logger.warn(
@@ -187,12 +187,12 @@ export class ConsultationsService {
       finalContent = VALIDATOR_FALLBACK;
     }
     // Severity floor, never record below MODERATE.
-    let severity = this.severityToEnum[assessment.severity];
+    let severity = this.severityToEnum[assessmentResult.severity];
     if (emergency.heightenedTerms.length > 0 && severity === ChatSeverity.LOW) {
       severity = ChatSeverity.MODERATE;
     }
     const referralSuggested =
-      assessment.referralSuggested || severity === ChatSeverity.HIGH;
+      assessmentResult.referralSuggested || severity === ChatSeverity.HIGH;
 
     // Persist assistant message
     const assistantMessage = await this.prismaService.chatMessage.create({

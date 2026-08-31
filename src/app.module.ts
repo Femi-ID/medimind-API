@@ -12,8 +12,8 @@ import { ConsultationsModule } from './consultations/consultations.module';
 import { HospitalsModule } from './hospitals/hospitals.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { CustomThrottlers } from './common/constants/custom-throttlers.constant';
-import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
-import Redis from 'ioredis';
+// import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+// import Redis from 'ioredis';
 
 @Module({
   imports: [

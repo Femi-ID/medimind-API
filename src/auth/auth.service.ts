@@ -39,7 +39,8 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
     const user = await this.usersService.getUserByEmail(email);
-    if (!user) throw new NotFoundException('User not found..');
+    if (!user || user.deletedAt != null)
+      throw new NotFoundException('User not found..');
 
     // if the user created an account through google
     if (!user.passwordHash) {
@@ -79,7 +80,7 @@ export class AuthService {
       if (!hashedPassword) return false;
       return await argon2.verify(hashedPassword, plainPassword);
     } catch (error) {
-      this.logger.log(`Error verifying password`, error);
+      this.logger.log(`Error verifying password with argon2`, error);
       throw new InternalServerErrorException('Could not verify password');
     }
   }
@@ -88,6 +89,8 @@ export class AuthService {
     const user = await this.usersService.getUserByEmail(payload.email);
     if (!user) throw new BadRequestException('Invalid user info provided.');
 
+    if (user.deletedAt)
+      return 'User account has been deleted, no authorization!';
     if (payload.role !== user.role || payload.email !== user.email)
       throw new UnauthorizedException(
         "Payload's information doesn't match the user's info",
@@ -145,7 +148,7 @@ export class AuthService {
   async validateOrCreateGoogleUser(googleUser: CreateGoogleUserDto) {
     // console.log('google user..', googleUser);
     const user = this.usersService.getUserByEmail(googleUser.email);
-    if (user) return user; // user already exists in the db, no need to create user account
+    if (user != null) return user; // user already exists in the db, no need to create user account
     const newUser = await this.usersService.createGoogleUser(googleUser);
     return newUser;
   }
