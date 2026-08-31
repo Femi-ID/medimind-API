@@ -19,14 +19,23 @@ export class PromptBuilderService {
     userId: string,
     sessionId: string,
     userMessage: string,
+    heightenedTerms: string[] = [],
   ): Promise<BaseMessage[]> {
     const [vitalsContext, history] = await Promise.all([
       this.buildVitalsContext(userId),
       this.buildConversationHistory(sessionId),
     ]);
 
+    let systemContent = `${SYSTEM_PROMPT}\n\n${vitalsContext}`;
+    if (heightenedTerms.length > 0) {
+      systemContent +=
+        `\n\nNOTE: The user's message contains higher-severity indicators ` +
+        `(${heightenedTerms.join(', ')}). Assess urgency carefully and lean ` +
+        `toward recommending professional care sooner.`;
+    }
+
     return [
-      new SystemMessage(`${SYSTEM_PROMPT}\n\n${vitalsContext}`),
+      new SystemMessage(systemContent),
       ...history,
       new HumanMessage(userMessage),
     ];

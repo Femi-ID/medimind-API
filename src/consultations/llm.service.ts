@@ -6,42 +6,60 @@ import {
 import { ChatGroq } from '@langchain/groq';
 import { BaseMessage } from '@langchain/core/messages';
 import { ConfigService } from '@nestjs/config';
+import {
+  AssessmentResult,
+  assessmentSchema,
+} from './schemas/assessment.schema';
+import { Runnable } from '@langchain/core/runnables';
 
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
-  private readonly primary: ChatGroq;
-  private readonly fallback: ChatGroq;
+  private readonly primaryModel: ChatGroq;
+  private readonly fallbackModel: ChatGroq;
 
   constructor(private readonly config: ConfigService) {
     const apiKey = this.config.getOrThrow<string>('GROQ_API_KEY');
     const common = { apiKey, temperature: 0.3, maxTokens: 800 };
 
-    this.primary = new ChatGroq({
+    this.primaryModel = new ChatGroq({
       ...common,
       model: this.config.get<string>(
         'GROQ_MODEL_PRIMARY',
-        'llama-3.3-70b-versatile',
+        'openai/gpt-oss-120b',
       ),
     });
-    this.fallback = new ChatGroq({
+    this.fallbackModel = new ChatGroq({
       ...common,
       model: this.config.get<string>(
         'GROQ_MODEL_FALLBACK',
-        'llama-3.1-8b-instant',
+        'openai/gpt-oss-20b',
       ),
     });
   }
 
-  async invoke(messages: BaseMessage[]): Promise<string> {
+  async invokeStructured(messages: BaseMessage[]): Promise<AssessmentResult> {
+    const primaryStructured = this.primaryModel.withStructuredOutput(
+      assessmentSchema,
+      { name: 'health_assessment' },
+    );
+    const fallbackStructured = this.fallbackModel.withStructuredOutput(
+      assessmentSchema,
+      { name: 'health_assessment' },
+    );
+
     try {
-      return await this.invokeWithRetry(this.primary, messages, 'primary');
+      return await this.runWithRetry(primaryStructured, messages, 'primary');
     } catch (primaryErr) {
       this.logger.warn(
         `Primary model failed: ${(primaryErr as Error).message}. Falling back to lighter model.`,
       );
       try {
-        return await this.invokeWithRetry(this.fallback, messages, 'fallback');
+        return await this.runWithRetry(
+          fallbackStructured,
+          messages,
+          'fallback',
+        );
       } catch (fallbackErr) {
         this.logger.error(
           `Both models failed: ${(fallbackErr as Error).message}`,
@@ -51,38 +69,48 @@ export class LlmService {
     }
   }
 
-  private async invokeWithRetry(
-    model: ChatGroq,
+  private async runWithRetry<T>(
+    runnable: Runnable<BaseMessage[], T>,
     messages: BaseMessage[],
     label: string,
-  ): Promise<string> {
+  ): Promise<T> {
     const delaysMs = [0, 2000, 5000];
     let lastErr: unknown;
     for (const delay of delaysMs) {
-      if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+      if (delay > 0) await new Promise((r) => setTimeout(r, delay)); // at the second attempt
       try {
-        const response = await model.invoke(messages);
+        return await runnable.invoke(messages);
         // return response.content.toString().trim();
-        return JSON.stringify(response.content).trim();
       } catch (err) {
         lastErr = err;
         if (!this.isRetryable(err)) throw err;
-        this.logger.warn(`${label} call retryable failure, retrying`);
+        this.logger.warn(`${label} retryable failure, retrying after backoff`);
       }
     }
     throw lastErr;
   }
 
   private isRetryable(err: unknown): boolean {
-    const anyErr = err as {
+    const e = err as {
       response?: { status?: number };
       status?: number;
       code?: string;
     };
-    const status = anyErr?.response?.status ?? anyErr?.status;
+    const status = e?.response?.status ?? e?.status;
     if (status === 429 || status === 503) return true;
-    if (anyErr?.code === 'ECONNRESET' || anyErr?.code === 'ETIMEDOUT')
-      return true;
-    return false;
+    return e?.code === 'ECONNRESET' || e?.code === 'ETIMEDOUT';
   }
+
+  // private isRetryable(err: unknown): boolean {
+  //   const anyErr = err as {
+  //     response?: { status?: number };
+  //     status?: number;
+  //     code?: string;
+  //   };
+  //   const status = anyErr?.response?.status ?? anyErr?.status;
+  //   if (status === 429 || status === 503) return true;
+  //   if (anyErr?.code === 'ECONNRESET' || anyErr?.code === 'ETIMEDOUT')
+  //     return true;
+  //   return false;
+  // }
 }

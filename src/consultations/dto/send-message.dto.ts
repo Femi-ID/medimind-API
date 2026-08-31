@@ -1,5 +1,7 @@
 import {
   IsIn,
+  IsLatitude,
+  IsLongitude,
   IsOptional,
   IsString,
   IsUUID,
@@ -26,4 +28,14 @@ export class SendMessageDto {
   @IsOptional()
   @IsIn(['en', 'pcm', 'yo', 'ig', 'ha'])
   language?: string; // accepted for contract stability; multilingual is post-MVP
+
+  @ApiPropertyOptional({ example: 6.5244 })
+  @IsOptional()
+  @IsLatitude()
+  lat?: number;
+
+  @ApiPropertyOptional({ example: 3.3792 })
+  @IsOptional()
+  @IsLongitude()
+  lng?: number;
 }

@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Patch,
@@ -18,13 +19,26 @@ import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
+import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
+import { OutputValidatorService } from './output-validator.service';
+import { Public } from 'src/auth/decorators/public.decorators';
 
+@SkipThrottle({
+  [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
+  [CustomThrottlers.STRICT]: true, // wakes up the STRICT throttler with the same setting set in app.module.ts
+  // allows MODERATE throttler to run with default settings.
+})
+@ApiBearerAuth('access-token')
 @Controller('consultations')
 export class ConsultationsController {
-  constructor(private readonly consultationsService: ConsultationsService) {}
+  constructor(
+    private readonly consultationsService: ConsultationsService,
+    private readonly outputValidatorService: OutputValidatorService,
+  ) {}
 
   @ApiOperation({ summary: 'Start a new consultation session' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Post('sessions')
   async createSession(
     @Request() req: UserRequest,
@@ -37,7 +51,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'List consultation sessions for the current user' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Get('sessions')
   async listSessions(
     @Request() req: UserRequest,
@@ -52,7 +66,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'Fetch a session with its full message history' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Get('sessions/:id')
   async getSession(
     @Request() req: UserRequest,
@@ -62,7 +76,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'Rename a session' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Patch('sessions/:id')
   async updateSession(
     @Request() req: UserRequest,
@@ -77,7 +91,7 @@ export class ConsultationsController {
   }
 
   @ApiOperation({ summary: 'Delete a session and all its messages' })
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Delete('sessions/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteSession(
@@ -95,16 +109,16 @@ export class ConsultationsController {
     description:
       "Persists the user message, injects the user's latest vitals and recent conversation history into the prompt, calls the LLM, and returns the assistant reply.",
   })
-  @ApiBearerAuth('access-token')
-  @Post('send-message')
+  // @ApiBearerAuth('access-token')
+  @Post('messages')
   async sendMessage(
     @Request() req: UserRequest,
     @Body() sendMessageDto: SendMessageDto,
   ) {
-    // if it's the first chat message, create a new chatSession
     let sessionId = sendMessageDto.sessionId;
     let isNewSession = false;
 
+    // if it's the first chat message, create a new chatSession
     if (!sessionId) {
       const session = await this.consultationsService.createSession(
         req.user.id,
@@ -112,12 +126,25 @@ export class ConsultationsController {
       sessionId = session.id;
       isNewSession = true;
     }
+
+    const coords =
+      sendMessageDto.lat != null && sendMessageDto.lng != null
+        ? { lat: sendMessageDto.lat, lng: sendMessageDto.lng }
+        : undefined;
     const result = await this.consultationsService.sendMessage(
       req.user.id,
       sessionId,
       sendMessageDto.content,
+      coords,
     );
 
     return { sessionId, isNewSession, ...result };
+  }
+
+  @Public()
+  @Post('_debug/validate-output')
+  debugValidate(@Body() b: { text: string }) {
+    if (process.env.NODE_ENV === 'production') throw new NotFoundException();
+    return this.outputValidatorService.validate(b.text);
   }
 }
