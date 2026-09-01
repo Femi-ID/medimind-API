@@ -15,6 +15,7 @@ import { CreateGoogleUserDto } from 'src/users/dtos/create-googleUser.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { ChangeUserPasswordDto } from './dtos/change-password.dto';
 import { PUBLIC_SELECTED_USER_DATA } from './constants/user-selected-data';
+import { DeleteAccountDto } from './dtos/delete-account.dto';
 
 @Injectable()
 export class UsersService {
@@ -195,7 +196,7 @@ export class UsersService {
     });
   }
 
-  async softDelete(userId: string, password: string) {
+  async softDelete(userId: string, deleteAccountDto: DeleteAccountDto) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
     });
@@ -204,7 +205,7 @@ export class UsersService {
     // Confirm identity before destroying access (skip for OAuth-only users).
     if (
       user.passwordHash &&
-      !(await argon2.verify(user.passwordHash, password))
+      !(await argon2.verify(user.passwordHash, deleteAccountDto.password))
     ) {
       throw new ForbiddenException('Password is incorrect.');
     }
