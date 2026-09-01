@@ -25,6 +25,7 @@ import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constan
 import { OutputValidatorService } from './output-validator.service';
 import { Public } from 'src/auth/decorators/public.decorators';
 import { ProfileCompleteGuard } from 'src/users/guards/complete-profile.guard';
+import { MessageRateLimitGuard } from './guards/message-rate-limit.guard';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -112,7 +113,7 @@ export class ConsultationsController {
       "Persists the user message, injects the user's latest vitals and recent conversation history into the prompt, calls the LLM, and returns the assistant reply.",
   })
   // @ApiBearerAuth('access-token')
-  @UseGuards(ProfileCompleteGuard)
+  @UseGuards(ProfileCompleteGuard, MessageRateLimitGuard)
   @Post('messages')
   async sendMessage(
     @Request() req: UserRequest,
@@ -134,14 +135,32 @@ export class ConsultationsController {
       sendMessageDto.lat != null && sendMessageDto.lng != null
         ? { lat: sendMessageDto.lat, lng: sendMessageDto.lng }
         : undefined;
-    const result = await this.consultationsService.sendMessage(
-      req.user.id,
-      sessionId,
-      sendMessageDto.content,
-      coords,
-    );
 
-    return { sessionId, isNewSession, ...result };
+    try {
+      const result = await this.consultationsService.sendMessage(
+        req.user.id,
+        sessionId,
+        sendMessageDto.content,
+        coords,
+      );
+      return { sessionId, isNewSession, ...result };
+    } catch (err) {
+      if (isNewSession) {
+        await this.consultationsService
+          .deleteSession(req.user.id, sessionId)
+          .catch(() => undefined);
+      }
+      throw err;
+    }
+
+    // const result = await this.consultationsService.sendMessage(
+    //   req.user.id,
+    //   sessionId,
+    //   sendMessageDto.content,
+    //   coords,
+    // );
+
+    // return { sessionId, isNewSession, ...result };
   }
 
   @Public()
