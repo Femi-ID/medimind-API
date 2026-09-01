@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ConsultationsService } from './consultations.service';
 import type { UserRequest } from 'src/users/type/request.interface';
@@ -23,6 +24,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
 import { OutputValidatorService } from './output-validator.service';
 import { Public } from 'src/auth/decorators/public.decorators';
+import { ProfileCompleteGuard } from 'src/users/guards/complete-profile.guard';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -110,6 +112,7 @@ export class ConsultationsController {
       "Persists the user message, injects the user's latest vitals and recent conversation history into the prompt, calls the LLM, and returns the assistant reply.",
   })
   // @ApiBearerAuth('access-token')
+  @UseGuards(ProfileCompleteGuard)
   @Post('messages')
   async sendMessage(
     @Request() req: UserRequest,

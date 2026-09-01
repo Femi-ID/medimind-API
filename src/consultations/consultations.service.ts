@@ -135,7 +135,7 @@ export class ConsultationsService {
             coordinates.lng,
             'high',
           )
-        : undefined;
+        : [];
 
       return {
         userMessage,
@@ -143,7 +143,9 @@ export class ConsultationsService {
         severity: ChatSeverity.HIGH,
         referralSuggested: true,
         isEmergency: true,
-        hospitals,
+        usedFallback: false,
+        // triage: 'EMERGENCY' as const,
+        hospitals: hospitals ?? [],
         disclaimer: DISCLAIMER,
       };
     }
@@ -225,7 +227,8 @@ export class ConsultationsService {
       referralSuggested,
       isEmergency: false,
       usedFallback,
-      hospitals,
+      triage: this.toTriage(false, severity),
+      hospitals: hospitals ?? [],
       disclaimer: DISCLAIMER,
     };
   }
@@ -270,5 +273,15 @@ export class ConsultationsService {
       where: { id: sessionId },
       data: { title },
     });
+  }
+
+  private toTriage(
+    isEmergency: boolean,
+    severity: ChatSeverity,
+  ): 'EMERGENCY' | 'URGENT' | 'MODERATE' | 'SELF_CARE' {
+    if (isEmergency) return 'EMERGENCY';
+    if (severity === ChatSeverity.HIGH) return 'URGENT';
+    if (severity === ChatSeverity.MODERATE) return 'MODERATE';
+    return 'SELF_CARE';
   }
 }
