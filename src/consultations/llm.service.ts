@@ -20,7 +20,8 @@ export class LlmService {
 
   constructor(private readonly config: ConfigService) {
     const apiKey = this.config.getOrThrow<string>('GROQ_API_KEY');
-    const common = { apiKey, temperature: 0.3, maxTokens: 800 };
+    // const common = { apiKey, temperature: 0.3, maxTokens: 800 };
+    const common = { apiKey, temperature: 0.2, maxTokens: 800 };
 
     this.primaryModel = new ChatGroq({
       ...common,

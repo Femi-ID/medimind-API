@@ -26,7 +26,8 @@ export class PromptBuilderService {
       this.buildConversationHistory(sessionId),
     ]);
 
-    let systemContent = `${SYSTEM_PROMPT}\n\n${vitalsContext}`;
+    const demographics = await this.buildDemographics(userId);
+    let systemContent = `${SYSTEM_PROMPT}\n\n${demographics}\n\n${vitalsContext}`;
     if (heightenedTerms.length > 0) {
       systemContent +=
         `\n\nNOTE: The user's message contains higher-severity indicators ` +
@@ -119,5 +120,18 @@ export class PromptBuilderService {
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
     return `${Math.floor(hours / 24)} day${Math.floor(hours / 24) === 1 ? '' : 's'} ago`;
+  }
+
+  private async buildDemographics(userId: string): Promise<string> {
+    const u = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { age: true, gender: true },
+    });
+    if (!u?.age && !u?.gender)
+      return 'PATIENT CONTEXT: age and sex not provided.';
+    const parts: string[] = [];
+    if (u.age) parts.push(`age ${u.age}`);
+    if (u.gender) parts.push(u.gender.toLowerCase());
+    return `PATIENT CONTEXT: ${parts.join(', ')}.`;
   }
 }
