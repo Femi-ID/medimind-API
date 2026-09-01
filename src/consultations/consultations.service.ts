@@ -144,7 +144,7 @@ export class ConsultationsService {
         referralSuggested: true,
         isEmergency: true,
         usedFallback: false,
-        // triage: 'EMERGENCY' as const,
+        triage: 'EMERGENCY' as const,
         hospitals: hospitals ?? [],
         disclaimer: DISCLAIMER,
       };

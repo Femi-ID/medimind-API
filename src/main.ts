@@ -4,18 +4,21 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
+  app.useGlobalFilters(new AllExceptionsFilter());
+
   //  security
-  // app.use(helmet());
+  app.use(helmet());
   app.enableCors({
     origin: process.env.CORS_ORIGIN ?? '*',
-    method: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    Credentials: true,
+    credentials: true,
   });
 
   //  global prefix with versioning
