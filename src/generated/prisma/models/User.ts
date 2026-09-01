@@ -42,6 +42,9 @@ export type UserMinAggregateOutputType = {
   lastName: string | null
   age: number | null
   gender: $Enums.Gender | null
+  phoneNumber: string | null
+  emergencyContactName: string | null
+  emergencyContactPhone: string | null
   preferredLanguage: $Enums.PreferredLanguage | null
   role: $Enums.UserRole | null
   emailVerified: boolean | null
@@ -64,6 +67,9 @@ export type UserMaxAggregateOutputType = {
   lastName: string | null
   age: number | null
   gender: $Enums.Gender | null
+  phoneNumber: string | null
+  emergencyContactName: string | null
+  emergencyContactPhone: string | null
   preferredLanguage: $Enums.PreferredLanguage | null
   role: $Enums.UserRole | null
   emailVerified: boolean | null
@@ -86,6 +92,9 @@ export type UserCountAggregateOutputType = {
   lastName: number
   age: number
   gender: number
+  phoneNumber: number
+  emergencyContactName: number
+  emergencyContactPhone: number
   preferredLanguage: number
   role: number
   emailVerified: number
@@ -118,6 +127,9 @@ export type UserMinAggregateInputType = {
   lastName?: true
   age?: true
   gender?: true
+  phoneNumber?: true
+  emergencyContactName?: true
+  emergencyContactPhone?: true
   preferredLanguage?: true
   role?: true
   emailVerified?: true
@@ -140,6 +152,9 @@ export type UserMaxAggregateInputType = {
   lastName?: true
   age?: true
   gender?: true
+  phoneNumber?: true
+  emergencyContactName?: true
+  emergencyContactPhone?: true
   preferredLanguage?: true
   role?: true
   emailVerified?: true
@@ -162,6 +177,9 @@ export type UserCountAggregateInputType = {
   lastName?: true
   age?: true
   gender?: true
+  phoneNumber?: true
+  emergencyContactName?: true
+  emergencyContactPhone?: true
   preferredLanguage?: true
   role?: true
   emailVerified?: true
@@ -271,6 +289,9 @@ export type UserGroupByOutputType = {
   lastName: string
   age: number | null
   gender: $Enums.Gender | null
+  phoneNumber: string | null
+  emergencyContactName: string | null
+  emergencyContactPhone: string | null
   preferredLanguage: $Enums.PreferredLanguage
   role: $Enums.UserRole
   emailVerified: boolean
@@ -316,6 +337,9 @@ export type UserWhereInput = {
   lastName?: Prisma.StringFilter<"User"> | string
   age?: Prisma.IntNullableFilter<"User"> | number | null
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  emergencyContactName?: Prisma.StringNullableFilter<"User"> | string | null
+  emergencyContactPhone?: Prisma.StringNullableFilter<"User"> | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFilter<"User"> | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
@@ -342,6 +366,9 @@ export type UserOrderByWithRelationInput = {
   lastName?: Prisma.SortOrder
   age?: Prisma.SortOrderInput | Prisma.SortOrder
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  emergencyContactName?: Prisma.SortOrderInput | Prisma.SortOrder
+  emergencyContactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
@@ -372,6 +399,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   lastName?: Prisma.StringFilter<"User"> | string
   age?: Prisma.IntNullableFilter<"User"> | number | null
   gender?: Prisma.EnumGenderNullableFilter<"User"> | $Enums.Gender | null
+  phoneNumber?: Prisma.StringNullableFilter<"User"> | string | null
+  emergencyContactName?: Prisma.StringNullableFilter<"User"> | string | null
+  emergencyContactPhone?: Prisma.StringNullableFilter<"User"> | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFilter<"User"> | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   emailVerified?: Prisma.BoolFilter<"User"> | boolean
@@ -397,6 +427,9 @@ export type UserOrderByWithAggregationInput = {
   lastName?: Prisma.SortOrder
   age?: Prisma.SortOrderInput | Prisma.SortOrder
   gender?: Prisma.SortOrderInput | Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
+  emergencyContactName?: Prisma.SortOrderInput | Prisma.SortOrder
+  emergencyContactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
@@ -427,6 +460,9 @@ export type UserScalarWhereWithAggregatesInput = {
   lastName?: Prisma.StringWithAggregatesFilter<"User"> | string
   age?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
   gender?: Prisma.EnumGenderNullableWithAggregatesFilter<"User"> | $Enums.Gender | null
+  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  emergencyContactName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  emergencyContactPhone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageWithAggregatesFilter<"User"> | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleWithAggregatesFilter<"User"> | $Enums.UserRole
   emailVerified?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
@@ -449,6 +485,9 @@ export type UserCreateInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -475,6 +514,9 @@ export type UserUncheckedCreateInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -501,6 +543,9 @@ export type UserUpdateInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -527,6 +572,9 @@ export type UserUncheckedUpdateInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -553,6 +601,9 @@ export type UserCreateManyInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -575,6 +626,9 @@ export type UserUpdateManyMutationInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -597,6 +651,9 @@ export type UserUncheckedUpdateManyInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -619,6 +676,9 @@ export type UserCountOrderByAggregateInput = {
   lastName?: Prisma.SortOrder
   age?: Prisma.SortOrder
   gender?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  emergencyContactName?: Prisma.SortOrder
+  emergencyContactPhone?: Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
@@ -645,6 +705,9 @@ export type UserMaxOrderByAggregateInput = {
   lastName?: Prisma.SortOrder
   age?: Prisma.SortOrder
   gender?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  emergencyContactName?: Prisma.SortOrder
+  emergencyContactPhone?: Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
@@ -667,6 +730,9 @@ export type UserMinOrderByAggregateInput = {
   lastName?: Prisma.SortOrder
   age?: Prisma.SortOrder
   gender?: Prisma.SortOrder
+  phoneNumber?: Prisma.SortOrder
+  emergencyContactName?: Prisma.SortOrder
+  emergencyContactPhone?: Prisma.SortOrder
   preferredLanguage?: Prisma.SortOrder
   role?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
@@ -798,6 +864,9 @@ export type UserCreateWithoutSessionsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -823,6 +892,9 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -864,6 +936,9 @@ export type UserUpdateWithoutSessionsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -889,6 +964,9 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -914,6 +992,9 @@ export type UserCreateWithoutVitalsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -939,6 +1020,9 @@ export type UserUncheckedCreateWithoutVitalsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -980,6 +1064,9 @@ export type UserUpdateWithoutVitalsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1005,6 +1092,9 @@ export type UserUncheckedUpdateWithoutVitalsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1030,6 +1120,9 @@ export type UserCreateWithoutChatSessionsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -1055,6 +1148,9 @@ export type UserUncheckedCreateWithoutChatSessionsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -1096,6 +1192,9 @@ export type UserUpdateWithoutChatSessionsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1121,6 +1220,9 @@ export type UserUncheckedUpdateWithoutChatSessionsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1146,6 +1248,9 @@ export type UserCreateWithoutReferralsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -1171,6 +1276,9 @@ export type UserUncheckedCreateWithoutReferralsInput = {
   lastName: string
   age?: number | null
   gender?: $Enums.Gender | null
+  phoneNumber?: string | null
+  emergencyContactName?: string | null
+  emergencyContactPhone?: string | null
   preferredLanguage?: $Enums.PreferredLanguage
   role?: $Enums.UserRole
   emailVerified?: boolean
@@ -1212,6 +1320,9 @@ export type UserUpdateWithoutReferralsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1237,6 +1348,9 @@ export type UserUncheckedUpdateWithoutReferralsInput = {
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   age?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emergencyContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   preferredLanguage?: Prisma.EnumPreferredLanguageFieldUpdateOperationsInput | $Enums.PreferredLanguage
   role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
   emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1320,6 +1434,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   lastName?: boolean
   age?: boolean
   gender?: boolean
+  phoneNumber?: boolean
+  emergencyContactName?: boolean
+  emergencyContactPhone?: boolean
   preferredLanguage?: boolean
   role?: boolean
   emailVerified?: boolean
@@ -1347,6 +1464,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   lastName?: boolean
   age?: boolean
   gender?: boolean
+  phoneNumber?: boolean
+  emergencyContactName?: boolean
+  emergencyContactPhone?: boolean
   preferredLanguage?: boolean
   role?: boolean
   emailVerified?: boolean
@@ -1369,6 +1489,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   lastName?: boolean
   age?: boolean
   gender?: boolean
+  phoneNumber?: boolean
+  emergencyContactName?: boolean
+  emergencyContactPhone?: boolean
   preferredLanguage?: boolean
   role?: boolean
   emailVerified?: boolean
@@ -1391,6 +1514,9 @@ export type UserSelectScalar = {
   lastName?: boolean
   age?: boolean
   gender?: boolean
+  phoneNumber?: boolean
+  emergencyContactName?: boolean
+  emergencyContactPhone?: boolean
   preferredLanguage?: boolean
   role?: boolean
   emailVerified?: boolean
@@ -1405,7 +1531,7 @@ export type UserSelectScalar = {
   deletedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "firstName" | "lastName" | "age" | "gender" | "preferredLanguage" | "role" | "emailVerified" | "authProvider" | "googleId" | "emailVerificationToken" | "emailVerificationExpiresAt" | "passwordResetToken" | "passwordResetExpiresAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "firstName" | "lastName" | "age" | "gender" | "phoneNumber" | "emergencyContactName" | "emergencyContactPhone" | "preferredLanguage" | "role" | "emailVerified" | "authProvider" | "googleId" | "emailVerificationToken" | "emailVerificationExpiresAt" | "passwordResetToken" | "passwordResetExpiresAt" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   vitals?: boolean | Prisma.User$vitalsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1432,6 +1558,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     lastName: string
     age: number | null
     gender: $Enums.Gender | null
+    phoneNumber: string | null
+    emergencyContactName: string | null
+    emergencyContactPhone: string | null
     preferredLanguage: $Enums.PreferredLanguage
     role: $Enums.UserRole
     emailVerified: boolean
@@ -1878,6 +2007,9 @@ export interface UserFieldRefs {
   readonly lastName: Prisma.FieldRef<"User", 'String'>
   readonly age: Prisma.FieldRef<"User", 'Int'>
   readonly gender: Prisma.FieldRef<"User", 'Gender'>
+  readonly phoneNumber: Prisma.FieldRef<"User", 'String'>
+  readonly emergencyContactName: Prisma.FieldRef<"User", 'String'>
+  readonly emergencyContactPhone: Prisma.FieldRef<"User", 'String'>
   readonly preferredLanguage: Prisma.FieldRef<"User", 'PreferredLanguage'>
   readonly role: Prisma.FieldRef<"User", 'UserRole'>
   readonly emailVerified: Prisma.FieldRef<"User", 'Boolean'>

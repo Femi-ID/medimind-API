@@ -13,6 +13,8 @@ import * as argon2 from 'argon2';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { CreateGoogleUserDto } from 'src/users/dtos/create-googleUser.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import { ChangeUserPasswordDto } from './dtos/change-password.dto';
+import { PUBLIC_SELECTED_USER_DATA } from './constants/user-selected-data';
 
 @Injectable()
 export class UsersService {
@@ -86,32 +88,36 @@ export class UsersService {
   async getUserProfile(id: string) {
     const user = await this.prismaService.user.findUnique({
       where: { id: id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        age: true,
-        gender: true,
-        preferredLanguage: true,
-        role: true,
-        // phoneNumber: true,
-        // emergencyContact: true,
-        emailVerified: true,
-        authProvider: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-      //   include: {
-      //     vitals: {
-      //       select: {
-      //         id: true,
-      //         diastolicBp: true,
-      //         systolicBp: true,
-      //       },
-      //     },
-      //   },
+      select: PUBLIC_SELECTED_USER_DATA,
     });
+    // const user = await this.prismaService.user.findUnique({
+    //   where: { id: id },
+    //   select: {
+    //     id: true,
+    //     email: true,
+    //     firstName: true,
+    //     lastName: true,
+    //     age: true,
+    //     gender: true,
+    //     preferredLanguage: true,
+    //     role: true,
+    //     // phoneNumber: true,
+    //     // emergencyContact: true,
+    //     emailVerified: true,
+    //     authProvider: true,
+    //     createdAt: true,
+    //     updatedAt: true,
+    //   },
+    //   include: {
+    //     vitals: {
+    //       select: {
+    //         id: true,
+    //         diastolicBp: true,
+    //         systolicBp: true,
+    //       },
+    //     },
+    //   },
+    // });
     if (!user) throw new NotFoundException('User not found..');
     return user;
   }
@@ -147,15 +153,15 @@ export class UsersService {
     const user = await this.prismaService.user.update({
       where: { id: userId },
       data: userProfileDto,
+      select: PUBLIC_SELECTED_USER_DATA,
     });
-    const { passwordHash, ...userDetails } = user;
-    return userDetails;
+    if (!user) return 'User account does not exist!';
+    return user;
   }
 
   async changePassword(
     userId: string,
-    currentPassword: string,
-    newPassword: string,
+    changeUserPasswordDto: ChangeUserPasswordDto,
   ) {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId },
@@ -169,12 +175,17 @@ export class UsersService {
       );
     }
 
-    const valid = await argon2.verify(user.passwordHash!, currentPassword);
+    const valid = await argon2.verify(
+      user.passwordHash!,
+      changeUserPasswordDto.currentPassword,
+    );
     if (!valid) throw new ForbiddenException('Current password is incorrect');
 
     await this.prismaService.user.update({
       where: { id: userId },
-      data: { passwordHash: await argon2.hash(newPassword) },
+      data: {
+        passwordHash: await argon2.hash(changeUserPasswordDto.newPassword),
+      },
     });
 
     // Revoke all other refresh sessions so old devices are logged out.

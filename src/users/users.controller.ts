@@ -20,6 +20,7 @@ import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constan
 import { SkipThrottle } from '@nestjs/throttler';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import type { Response } from 'express';
+import { ChangeUserPasswordDto } from './dtos/change-password.dto';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -55,13 +56,11 @@ export class UsersController {
   @Post('me/change-password')
   async changePassword(
     @Request() req: UserRequest,
-    currentPassword: string,
-    newPassword: string,
+    @Body() changeUserPasswordDto: ChangeUserPasswordDto,
   ) {
     return await this.usersService.changePassword(
       req.user.id,
-      currentPassword,
-      newPassword,
+      changeUserPasswordDto,
     );
   }
 
@@ -71,7 +70,7 @@ export class UsersController {
   })
   @ApiBearerAuth('access-token')
   @Delete('me')
-  async deleteAccount(@Request() req: UserRequest, password: string) {
+  async deleteAccount(@Request() req: UserRequest, @Body() password: string) {
     return await this.usersService.softDelete(req.user.id, password);
   }
 
@@ -79,7 +78,7 @@ export class UsersController {
   @ApiBearerAuth('access-token')
   async updateUserProfile(
     @Request() req: UserRequest,
-    updateUserProfileDto: UpdateUserProfileDto,
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
   ) {
     return await this.usersService.updateProfile(
       req.user.id,

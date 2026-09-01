@@ -22,8 +22,9 @@ model User {
   lastName                   String
   age                        Int?
   gender                     Gender?
-  phoneNumber                String[]
-  emergencyContact           String?
+  phoneNumber                String?
+  emergencyContactName       String?
+  emergencyContactPhone      String?
   preferredLanguage          PreferredLanguage @default(ENGLISH)
   role                       UserRole          @default(USER)
   emailVerified              Boolean           @default(false)
