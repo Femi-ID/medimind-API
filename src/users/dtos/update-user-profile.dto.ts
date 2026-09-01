@@ -1,3 +1,4 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNumber,
@@ -9,26 +10,32 @@ import {
 import { Gender, PreferredLanguage } from 'src/generated/prisma/enums';
 
 export class UpdateUserProfileDto {
+  @ApiPropertyOptional({ example: 'john' })
   @IsOptional()
   @IsString()
   firstName?: string;
 
+  @ApiPropertyOptional({ example: 'doe' })
   @IsOptional()
   @IsString()
   lastName?: string;
 
+  @ApiPropertyOptional({ example: 33 })
   @IsOptional()
   @IsNumber()
   age?: number;
 
+  @ApiPropertyOptional({ example: 'MALE' })
   @IsEnum(Gender)
   @IsOptional()
   gender?: Gender;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsEnum(PreferredLanguage)
   preferredLanguage?: PreferredLanguage;
 
+  @ApiPropertyOptional({ example: '+2348012345678' })
   @IsOptional()
   @IsString()
   @Matches(/^\+?[0-9\s-]{7,20}$/, {
@@ -36,11 +43,13 @@ export class UpdateUserProfileDto {
   })
   phoneNumber?: string;
 
+  @ApiPropertyOptional({ example: 'Aunt May' })
   @IsOptional()
   @IsString()
   @MaxLength(120)
   emergencyContactName?: string;
 
+  @ApiPropertyOptional({ example: '+2348012345678' })
   @IsOptional()
   @IsString()
   @Matches(/^\+?[0-9\s-]{7,20}$/, {

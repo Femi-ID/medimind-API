@@ -25,8 +25,8 @@ export class ProfileCompleteGuard implements CanActivate {
       },
     });
     if (
-      !user?.phoneNumber &&
-      !user?.emergencyContactName &&
+      !user?.phoneNumber ||
+      !user?.emergencyContactName ||
       !user?.emergencyContactPhone
     ) {
       throw new ForbiddenException({

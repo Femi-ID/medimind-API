@@ -20,6 +20,7 @@ export class SendMessageDto {
   @MaxLength(2000)
   content!: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
   sessionId?: string;
