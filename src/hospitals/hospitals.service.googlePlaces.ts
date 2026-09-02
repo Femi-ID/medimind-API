@@ -14,21 +14,13 @@ interface CacheEntry {
   data: SeedHospital[];
 }
 
-/**
- * Hospital lookup backed by OpenStreetMap's free Overpass API.
- * No API key, no billing, and caching is permitted under the ODbL licence.
- * Falls back to the Lagos seed list on missing data, timeout, or any error,
- * and can be forced to the seed list with HOSPITALS_PROVIDER=stub.
- *
- * Trade-off vs a commercial provider: OSM rarely carries ratings or live
- * opening hours, so `rating` and `openNow` are returned as null.
- */
 @Injectable()
 export class HospitalsService {
   private readonly logger = new Logger(HospitalsService.name);
   private readonly cache = new Map<string, CacheEntry>();
   private readonly CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
-  private readonly OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+  private readonly PLACES_URL =
+    'https://places.googleapis.com/v1/places:searchNearby';
 
   constructor(
     private readonly prismaService: PrismaService,
@@ -42,6 +34,7 @@ export class HospitalsService {
     radiusKm = 15,
     limit = 3,
   ): Promise<Hospital[]> {
+    // Real data when a key is configured; otherwise the seed list.
     const source = await this.resolveSource(lat, lng, radiusKm);
 
     return source
@@ -55,53 +48,67 @@ export class HospitalsService {
       .slice(0, limit);
   }
 
+  /**
+   * Returns hospital candidates from Google Places when GOOGLE_PLACES_API_KEY
+   * is set and reachable; falls back to the Lagos seed list on missing key,
+   * timeout, or any API error. Never throws — hospital lookup must not break
+   * a consultation reply.
+   */
   private async resolveSource(
     lat: number,
     lng: number,
     radiusKm: number,
   ): Promise<SeedHospital[]> {
-    if (this.config.get<string>('HOSPITALS_PROVIDER') === 'stub') {
-      return LAGOS_HOSPITALS;
-    }
+    const apiKey = this.config.get<string>('GOOGLE_PLACES_API_KEY');
+    if (!apiKey) return LAGOS_HOSPITALS;
 
     const cacheKey = `${lat.toFixed(2)}:${lng.toFixed(2)}:${radiusKm}`;
     const hit = this.cache.get(cacheKey);
     if (hit && hit.expires > Date.now()) return hit.data;
 
     try {
-      const radiusM = Math.min(Math.round(radiusKm * 1000), 20000);
-      const query =
-        `[out:json][timeout:10];(` +
-        `node["amenity"="hospital"](around:${radiusM},${lat},${lng});` +
-        `way["amenity"="hospital"](around:${radiusM},${lat},${lng});` +
-        `node["healthcare"="hospital"](around:${radiusM},${lat},${lng});` +
-        `way["healthcare"="hospital"](around:${radiusM},${lat},${lng});` +
-        `);out center tags 25;`;
-
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8000);
+      const timer = setTimeout(() => controller.abort(), 4000);
 
-      const res = await fetch(this.OVERPASS_URL, {
+      const res = await fetch(this.PLACES_URL, {
         method: 'POST',
         signal: controller.signal,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          // Overpass etiquette: identify the app.
-          'User-Agent': 'MediMind/1.0 (context-aware healthcare assistant)',
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': [
+            'places.id',
+            'places.displayName',
+            'places.location',
+            'places.formattedAddress',
+            'places.rating',
+            'places.currentOpeningHours.openNow',
+            'places.nationalPhoneNumber',
+            'places.types',
+          ].join(','),
         },
-        body: `data=${encodeURIComponent(query)}`,
+        body: JSON.stringify({
+          includedTypes: ['hospital'],
+          maxResultCount: 15,
+          rankPreference: 'DISTANCE',
+          locationRestriction: {
+            circle: {
+              center: { latitude: lat, longitude: lng },
+              radius: Math.min(radiusKm * 1000, 50000),
+            },
+          },
+        }),
       }).finally(() => clearTimeout(timer));
 
       if (!res.ok) {
-        this.logger.warn(`Overpass ${res.status}; falling back to seed list.`);
+        this.logger.warn(
+          `Places API ${res.status}; falling back to seed list.`,
+        );
         return LAGOS_HOSPITALS;
       }
 
-      const json = (await res.json()) as { elements?: OverpassElement[] };
-      const mapped = (json.elements ?? [])
-        .map((e) => this.mapElement(e))
-        .filter((h): h is SeedHospital => h !== null);
-
+      const json = (await res.json()) as { places?: PlaceResult[] };
+      const mapped = (json.places ?? []).map((p) => this.mapPlace(p));
       if (mapped.length === 0) return LAGOS_HOSPITALS;
 
       this.cache.set(cacheKey, {
@@ -111,44 +118,34 @@ export class HospitalsService {
       return mapped;
     } catch (err) {
       this.logger.warn(
-        `Overpass lookup failed (${(err as Error).message}); using seed list.`,
+        `Places lookup failed (${(err as Error).message}); using seed list.`,
       );
       return LAGOS_HOSPITALS;
     }
   }
 
-  private mapElement(e: OverpassElement): SeedHospital | null {
-    const lat = e.lat ?? e.center?.lat;
-    const lng = e.lon ?? e.center?.lon;
-    if (lat == null || lng == null) return null;
-
-    const tags = e.tags ?? {};
-    const amenity = tags.amenity;
-    const facilityType: SeedHospital['facilityType'] =
-      amenity === 'pharmacy'
-        ? 'pharmacy'
-        : amenity === 'clinic' || tags.healthcare === 'clinic'
-          ? 'clinic'
-          : 'general_hospital';
-
+  private mapPlace(p: PlaceResult): SeedHospital {
+    const types = p.types ?? [];
+    const isPharmacy =
+      types.includes('pharmacy') || types.includes('drugstore');
+    const isHospital = types.includes('hospital');
     return {
-      placeId: `osm-${e.type}-${e.id}`,
-      name: tags.name ?? tags['name:en'] ?? 'Unnamed medical facility',
-      latitude: lat,
-      longitude: lng,
-      address: this.buildAddress(tags),
-      facilityType,
-      hasEmergency: tags.emergency === 'yes' || amenity === 'hospital',
-      rating: null, // OSM carries no ratings
-      openNow: null, // opening_hours parsing intentionally omitted
-      phone: tags.phone ?? tags['contact:phone'] ?? null,
+      placeId: p.id,
+      name: p.displayName?.text ?? 'Unknown facility',
+      latitude: p.location?.latitude ?? 0,
+      longitude: p.location?.longitude ?? 0,
+      address: p.formattedAddress ?? '',
+      facilityType: isPharmacy
+        ? 'pharmacy'
+        : isHospital
+          ? 'general_hospital'
+          : 'clinic',
+      // Places doesn't expose an ER flag; treat hospitals as emergency-capable.
+      hasEmergency: isHospital,
+      rating: p.rating ?? null,
+      openNow: p.currentOpeningHours?.openNow ?? null,
+      phone: p.nationalPhoneNumber ?? null,
     };
-  }
-
-  private buildAddress(tags: Record<string, string>): string {
-    return [tags['addr:street'], tags['addr:city'], tags['addr:state']]
-      .filter(Boolean)
-      .join(', ');
   }
 
   async recordReferral(userId: string, dto: CreateReferralDto) {
@@ -190,11 +187,13 @@ export class HospitalsService {
   }
 }
 
-interface OverpassElement {
-  type: 'node' | 'way' | 'relation';
-  id: number;
-  lat?: number;
-  lon?: number;
-  center?: { lat: number; lon: number };
-  tags?: Record<string, string>;
+interface PlaceResult {
+  id: string;
+  displayName?: { text?: string };
+  location?: { latitude?: number; longitude?: number };
+  formattedAddress?: string;
+  rating?: number;
+  currentOpeningHours?: { openNow?: boolean };
+  nationalPhoneNumber?: string;
+  types?: string[];
 }
