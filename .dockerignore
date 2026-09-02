@@ -1,0 +1,24 @@
+# Reinstalled/rebuilt inside the image — never copy these in
+node_modules
+dist
+coverage
+
+# Secrets & local env — must NOT enter the image
+.env
+.env.*
+
+# VCS / tooling / docs
+.git
+.gitignore
+.vscode
+.idea
+*.log
+*.md
+README*
+
+# Tests aren't needed to run the service
+test
+
+# Don't copy Docker files into the context
+Dockerfile
+.dockerignore
