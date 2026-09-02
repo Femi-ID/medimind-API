@@ -12,8 +12,50 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  // Generate OpenAPI document using NestJS Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Medimind API')
+    .setDescription('The API description here...')
+    .addServer('/api/v1')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description: 'Enter your JWT access token',
+        in: 'header',
+      },
+      'access-token',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
   //  security
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+          'script-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'https://cdn.jsdelivr.net',
+          ],
+          'style-src': [
+            "'self'",
+            "'unsafe-inline'",
+            'https://fonts.googleapis.com',
+          ],
+          'img-src': ["'self'", 'data:', 'https:'],
+          'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+          'connect-src': ["'self'", 'https://cdn.jsdelivr.net'],
+        },
+      },
+    }),
+  );
   app.enableCors({
     origin: process.env.CORS_ORIGIN ?? '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -36,27 +78,7 @@ async function bootstrap() {
     }),
   );
 
-  // Generate OpenAPI document using NestJS Swagger
-  const config = new DocumentBuilder()
-    .setTitle('Medimind API')
-    .setDescription('The API description here...')
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'Authorization',
-        description: 'Enter your JWT access token',
-        in: 'header',
-      },
-      'access-token',
-    )
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-
-  // 2. Serve Scalar documentation at /api/docs
+  // Serve Scalar documentation at /api/v1/docs
   app.use(
     '/api/v1/docs',
     apiReference({
