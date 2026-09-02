@@ -33,11 +33,15 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Request() req: UserRequest, @Body() loginUserDto: LoginUserDto) {
+  async login(@Request() req: UserRequest, @Body() dto: LoginUserDto) {
     return await this.authService.login(
       req.user.id,
       req.user.email,
       req.user.role,
+      {
+        userAgent: req.get('user-agent'),
+        ipAddress: req.ip,
+      },
     );
   }
 
@@ -56,13 +60,17 @@ export class AuthController {
   @Public()
   @UseGuards(RefreshAuthGuard)
   @ApiBearerAuth('access-token')
-  @Get('refresh')
+  @Post('refresh')
   async refreshToken(@Request() req: UserRequest) {
-    return await this.authService.generateNewTokens({
-      sub: req.user.id,
-      email: req.user.email,
-      role: req.user.role,
-    });
+    return await this.authService.rotateTokens(
+      {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+        sessionId: req.user.sessionId!,
+      },
+      { userAgent: req.get('user-agent'), ipAddress: req.ip },
+    );
   }
 
   @Public()
