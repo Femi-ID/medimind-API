@@ -1,4 +1,5 @@
 # Stage 1 — builder
+##############################
 FROM node:22-bookworm-slim AS builder
 WORKDIR /app
 
@@ -30,7 +31,9 @@ RUN pnpm prisma generate \
 # (not devDependencies) so the CLI survives for `migrate deploy`.
 RUN pnpm prune --prod
 
+
 # Stage 2 — runner
+##############################
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production

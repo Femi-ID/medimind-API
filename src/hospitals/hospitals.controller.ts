@@ -1,11 +1,12 @@
 import { Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { HospitalsService } from './hospitals.service';
+// import { HospitalsService } from './hospitals-prev.service';
 import { NearbyQueryDto } from './dto/nearby-query.dto';
 import type { UserRequest } from 'src/users/type/request.interface';
 import { CreateReferralDto } from './dto/create-referral.dto';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
+import { HospitalsService } from './hospitals.service';
 
 @SkipThrottle({
   [CustomThrottlers.STRICT]: true, // this bypasses the global DEFAULT throttler
@@ -23,7 +24,7 @@ export class HospitalsController {
     summary:
       'List nearby hospitals, filtered by severity and ranked by distance',
   })
-  nearby(@Query() q: NearbyQueryDto) {
+  async nearby(@Query() q: NearbyQueryDto) {
     return this.hospitalsService.nearby(
       q.latitude,
       q.longitude,
