@@ -6,5 +6,6 @@ export interface UserRequest extends Request {
     id: string;
     email: string;
     role: UserRole;
+    sessionId?: string;
   };
 }
