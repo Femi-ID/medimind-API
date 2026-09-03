@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -19,6 +20,8 @@ import { RefreshAuthGuard } from './guards/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
+import { clearRefreshCookie, setRefreshCookie } from './auth-cookie';
+import type { Response } from 'express';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // sets DEFAULT off
@@ -33,8 +36,12 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Request() req: UserRequest, @Body() dto: LoginUserDto) {
-    return await this.authService.login(
+  async login(
+    @Request() req: UserRequest,
+    @Body() dto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.login(
       req.user.id,
       req.user.email,
       req.user.role,
@@ -43,26 +50,37 @@ export class AuthController {
         ipAddress: req.ip,
       },
     );
+    setRefreshCookie(res, refreshToken);
+    console.log(`refreshToken- ${refreshToken}`);
+    return { accessToken };
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Post('logout')
-  async logout(@Request() req: UserRequest) {
-    await this.authService.logout(req.user.id);
-    return {
-      statusCode: 204,
-      message: `Logged user- ${req.user.id} successfully`,
-    };
+  async logout(
+    @Request() req: UserRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.logout(req.user.sessionId);
+    clearRefreshCookie(res);
+    // return {
+    //   statusCode: 204,
+    //   message: `Logged user- ${req.user.id} successfully`,
+    // };
   }
 
   @Public()
   @UseGuards(RefreshAuthGuard)
-  @ApiBearerAuth('access-token')
+  // @ApiBearerAuth('access-token')
   @Post('refresh')
-  async refreshToken(@Request() req: UserRequest) {
-    return await this.authService.rotateTokens(
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(
+    @Request() req: UserRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.rotateTokens(
       {
         id: req.user.id,
         email: req.user.email,
@@ -71,6 +89,8 @@ export class AuthController {
       },
       { userAgent: req.get('user-agent'), ipAddress: req.ip },
     );
+    setRefreshCookie(res, refreshToken);
+    return { accessToken };
   }
 
   @Public()
@@ -81,13 +101,29 @@ export class AuthController {
   @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  async googleCallbackUrl(@Request() req: UserRequest) {
+  async googleCallbackUrl(@Request() req: UserRequest, @Res() res: Response) {
     console.log('user request..', req.user.id);
-    const response = await this.authService.login(
+    // const response = await this.authService.login(
+    //   req.user.id,
+    //   req.user.email,
+    //   req.user.role,
+    // );
+    // return response;
+
+    const { accessToken, refreshToken } = await this.authService.login(
       req.user.id,
       req.user.email,
       req.user.role,
+      { userAgent: req.get('user-agent'), ipAddress: req.ip },
     );
-    return response;
+    setRefreshCookie(res, refreshToken);
+
+    const frontend =
+      process.env.FRONTEND_URL ??
+      process.env.CORS_ORIGIN?.split(',')[0]?.trim() ??
+      '/';
+    // Access token is NOT put in the URL; the frontend calls /auth/refresh
+    // (cookie is sent) to obtain it. Keeps the token out of logs/history.
+    return res.redirect(`${frontend}/auth/callback`);
   }
 }

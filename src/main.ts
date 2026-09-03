@@ -5,11 +5,13 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
 
+  app.use(cookieParser());
   app.useGlobalFilters(new AllExceptionsFilter());
 
   // Generate OpenAPI document using NestJS Swagger
