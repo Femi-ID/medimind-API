@@ -24,6 +24,7 @@ import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import type { Response } from 'express';
 import { ChangeUserPasswordDto } from './dtos/change-password.dto';
 import { DeleteAccountDto } from './dtos/delete-account.dto';
+import { Public } from 'src/auth/decorators/public.decorators';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -36,6 +37,12 @@ export class UsersController {
 
   constructor(private readonly usersService: UsersService) {}
 
+  @SkipThrottle({
+    [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
+    [CustomThrottlers.MODERATE]: true, // wakes up the STRICT throttler with the same setting set in app.module.ts
+    // allows STRICT throttler to run with default settings.
+  })
+  @Public()
   @Post('create')
   //   async createUser(@Body() createUserDto: Prisma.UserCreateInput) {
   async createUser(@Body() createUserDto: CreateUserDto) {
