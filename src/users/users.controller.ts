@@ -25,6 +25,7 @@ import type { Response } from 'express';
 import { ChangeUserPasswordDto } from './dtos/change-password.dto';
 import { DeleteAccountDto } from './dtos/delete-account.dto';
 import { Public } from 'src/auth/decorators/public.decorators';
+import { ExportService } from './export.service';
 
 @SkipThrottle({
   [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -35,7 +36,10 @@ import { Public } from 'src/auth/decorators/public.decorators';
 export class UsersController {
   private readonly logger = new Logger(UsersController.name);
 
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly exportService: ExportService,
+  ) {}
 
   @SkipThrottle({
     [CustomThrottlers.DEFAULT]: true, // this bypasses the global DEFAULT throttler
@@ -117,5 +121,32 @@ export class UsersController {
       `attachment; filename="medimind-export-${req.user.id}-${date}.json"`,
     );
     return data;
+  }
+
+  @Get('me/export/pdf')
+  @ApiOperation({ summary: 'Download a PDF health report with vitals charts' })
+  @ApiBearerAuth('access-token')
+  async exportPdf(@Request() req: UserRequest, @Res() res: Response) {
+    const buf = await this.exportService.generatePdf(req.user.id);
+    const date = new Date().toISOString().slice(0, 10);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="medimind-report-${date}.pdf"`,
+      'Content-Length': buf.length,
+    });
+    res.end(buf);
+  }
+
+  @Get('me/export/csv')
+  @ApiOperation({ summary: 'Download vitals as CSV' })
+  @ApiBearerAuth('access-token')
+  async exportCsv(@Request() req: UserRequest, @Res() res: Response) {
+    const csv = await this.exportService.generateCsv(req.user.id);
+    const date = new Date().toISOString().slice(0, 10);
+    res.set({
+      'Content-Type': 'text/csv',
+      'Content-Disposition': `attachment; filename="medimind-vitals-${date}.csv"`,
+    });
+    res.send(csv);
   }
 }

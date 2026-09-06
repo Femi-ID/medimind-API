@@ -178,4 +178,11 @@ export class VitalsService {
     await this.prismaService.vital.delete({ where: { id: vitalId } });
     return { deleted: true };
   }
+
+  async count(userId: string): Promise<{ count: number }> {
+    const count = await this.prismaService.vital.count({
+      where: { userId },
+    });
+    return { count };
+  }
 }
