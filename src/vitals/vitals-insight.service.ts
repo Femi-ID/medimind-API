@@ -1,32 +1,34 @@
-import {
-  Injectable,
-  Logger,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { LlmService } from 'src/consultations/llm.service';
-import {
-  VITAL_PARAMETER_FIELD_MAP,
-  VitalField,
-  VitalParameter,
-} from './enums/vital-parameter.enum';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import {
-  InsightsResult,
-  insightSchema,
-} from 'src/consultations/schemas/insights.schema';
-import { ChatGroq } from '@langchain/groq';
 import { ConfigService } from '@nestjs/config';
+import type { InsightsResult } from 'src/consultations/schemas/insights.schema';
 
-const INSIGHTS_SYSTEM_PROMPT = `You are MediMind's vitals analyst. You receive a patient's recent vital-sign readings (7-day window) and produce structured JSON insights.
+const INSIGHTS_SYSTEM_PROMPT = `You are MediMind's vitals analyst. You receive a patient's recent vital-sign readings and produce observations.
+
+You MUST respond with ONLY a valid JSON object, no markdown fences, no commentary before or after. The JSON must have this exact shape:
+
+{
+  "insights": [
+    {
+      "parameter": "<systolic_bp|heart_rate|blood_glucose|weight>",
+      "severity": "<normal|watch|alert>",
+      "direction": "<up|down|flat>",
+      "message": "<1-2 sentence observation citing actual numbers>"
+    }
+  ],
+  "summary": "<one sentence synthesizing all parameters>"
+}
 
 Rules:
-- Never diagnose. Say "this may warrant attention" rather than "you have hypertension."
-- Be specific: cite actual numbers ("your systolic BP averaged 142 mmHg, up from 128 a week ago").
-- Reason across parameters together when relevant (e.g. BP + heart rate).
-- If everything looks normal, say so clearly and positively.
-- The audience is the patient, not a clinician — use plain language.
-- Keep each insight to 1–2 sentences. Keep the summary to 1 sentence.`;
+- Only include entries for parameters that have data. If there's no heart rate data, don't include a heart_rate entry.
+- Never diagnose. Say "this may warrant attention" not "you have hypertension."
+- Be specific: cite actual numbers ("your systolic BP averaged 142 mmHg, up from 128").
+- Reason across parameters when relevant (e.g. rising BP with elevated heart rate).
+- If everything looks normal, say so positively.
+- Plain language for a patient, not a clinician.
+- severity: normal = healthy range, watch = borderline or trending, alert = clinically concerning.
+- direction: up/down/flat based on trend over the window.
+- Respond with ONLY the JSON object. No other text.`;
 
 @Injectable()
 export class VitalsInsightsService {
@@ -55,10 +57,8 @@ export class VitalsInsightsService {
       };
     }
 
-    // Build a compact text table the LLM can reason over.
-    const dataBlock = this.buildDataBlock(readings, days);
+    const dataBlock = this.buildDataBlock(readings);
 
-    // Also fetch the user's demographics for context.
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { age: true, gender: true },
@@ -73,39 +73,137 @@ export class VitalsInsightsService {
     const userPrompt =
       (demoLine ? `Patient: ${demoLine}.\n\n` : '') +
       `Here are the patient's vital readings from the last ${days} days:\n\n${dataBlock}\n\n` +
-      `Produce your structured insights.`;
+      `Respond with ONLY the JSON object.`;
 
     try {
-      const apiKey = this.config.getOrThrow<string>('GROQ_API_KEY');
-      const model = new ChatGroq({
-        apiKey,
-        temperature: 0.15,
-        maxTokens: 600,
-        model: this.config.get<string>(
-          'GROQ_MODEL_PRIMARY',
-          'openai/gpt-oss-120b',
-        ),
-      });
-
-      const structured = model.withStructuredOutput(insightSchema, {
-        name: 'vitals_insights',
-      });
-
-      return await structured.invoke([
-        new SystemMessage(INSIGHTS_SYSTEM_PROMPT),
-        new HumanMessage(userPrompt),
-      ]);
+      return await this.invokeWithFallback(userPrompt);
     } catch (err) {
-      this.logger.warn(`Insights LLM call failed: ${(err as Error).message}`);
-      // Graceful degradation: return a safe fallback so the dashboard never breaks.
-      return this.fallbackInsights(readings, days);
+      this.logger.warn(
+        `All insight models failed: ${(err as Error).message}; using rule-based fallback.`,
+      );
+      return this.fallbackInsights(readings);
     }
   }
 
-  private buildDataBlock(
-    readings: Array<Record<string, unknown>>,
-    days: number,
-  ): string {
+  /**
+   * gpt-oss models on Groq default to reasoning_effort "medium" — they
+   * spend invisible reasoning tokens BEFORE the final answer. With too
+   * small a max_tokens budget, reasoning alone exhausts it and the model
+   * never reaches the JSON output at all (empty/truncated content, which
+   * Groq's JSON-mode validator then hard-rejects with a 400). Fix: shrink
+   * reasoning effort, hide it from the content field, and give a much
+   * larger token budget so there's room left for the actual JSON.
+   */
+  private async invokeWithFallback(
+    userPrompt: string,
+  ): Promise<InsightsResult> {
+    const apiKey = this.config.getOrThrow<string>('GROQ_API_KEY');
+
+    const models = [
+      this.config.get<string>('GROQ_MODEL_PRIMARY', 'openai/gpt-oss-120b'),
+      this.config.get<string>('GROQ_MODEL_FALLBACK', 'openai/gpt-oss-20b'),
+    ];
+
+    for (const model of models) {
+      for (const delay of [0, 2000]) {
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+        try {
+          const res = await fetch(
+            'https://api.groq.com/openai/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model,
+                temperature: 0.15,
+                max_tokens: 2000, // room for reasoning + the actual JSON
+                reasoning_effort: 'low', // minimize reasoning-token usage
+                reasoning_format: 'hidden', // keep reasoning out of `content`
+                response_format: { type: 'json_object' },
+                messages: [
+                  { role: 'system', content: INSIGHTS_SYSTEM_PROMPT },
+                  { role: 'user', content: userPrompt },
+                ],
+              }),
+            },
+          );
+
+          if (!res.ok) {
+            const status = res.status;
+            const body = await res.text();
+            if (status === 429 || status === 503) {
+              this.logger.warn(`Insights ${model} got ${status}, retrying...`);
+              continue;
+            }
+            this.logger.warn(
+              `Insights ${model} failed: ${status} ${body.slice(0, 300)}`,
+            );
+            break;
+          }
+
+          const json = await res.json();
+          const choice = json.choices?.[0];
+          const text: string = choice?.message?.content ?? '';
+          if (choice?.finish_reason === 'length') {
+            this.logger.warn(
+              `Insights ${model}: response truncated (finish_reason=length).`,
+            );
+          }
+
+          const parsed = this.parseResponse(text);
+          if (parsed) return parsed;
+          this.logger.warn(
+            `Insights ${model}: unparseable (len=${text.length}), retrying.`,
+          );
+        } catch (err) {
+          this.logger.warn(
+            `Insights ${model} error: ${(err as Error).message}`,
+          );
+          break;
+        }
+      }
+    }
+
+    throw new Error('Both models exhausted');
+  }
+
+  private parseResponse(text: string): InsightsResult | null {
+    try {
+      const cleaned = text
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/, '')
+        .trim();
+      const obj = JSON.parse(cleaned);
+
+      if (!Array.isArray(obj.insights) || typeof obj.summary !== 'string') {
+        return null;
+      }
+
+      const VALID_SEV = new Set(['normal', 'watch', 'alert']);
+      const VALID_DIR = new Set(['up', 'down', 'flat', 'mixed']);
+
+      const insights = obj.insights
+        .filter(
+          (e: any) =>
+            typeof e.parameter === 'string' && typeof e.message === 'string',
+        )
+        .map((e: any) => ({
+          parameter: e.parameter,
+          severity: VALID_SEV.has(e.severity) ? e.severity : 'normal',
+          direction: VALID_DIR.has(e.direction) ? e.direction : 'flat',
+          message: e.message,
+        }));
+
+      return { insights, summary: obj.summary };
+    } catch {
+      return null;
+    }
+  }
+
+  private buildDataBlock(readings: Array<Record<string, unknown>>): string {
     const lines: string[] = [];
     for (const r of readings) {
       const ts = (r.recordedAt as Date).toISOString().slice(0, 16);
@@ -123,40 +221,33 @@ export class VitalsInsightsService {
 
   private fallbackInsights(
     readings: Array<Record<string, unknown>>,
-    days: number,
   ): InsightsResult {
-    // Simple first-vs-last comparison per parameter, matching the client-side heuristic.
     const insights: InsightsResult['insights'] = [];
     const params: Array<{
-      key: VitalParameter;
-      field: VitalField;
+      key: string;
+      field: string;
       label: string;
       unit: string;
     }> = [
       {
-        key: VitalParameter.SYSTOLIC_BP,
+        key: 'systolic_bp',
         field: 'systolicBp',
         label: 'Systolic BP',
         unit: 'mmHg',
       },
       {
-        key: VitalParameter.HEART_RATE,
+        key: 'heart_rate',
         field: 'heartRate',
         label: 'Heart rate',
         unit: 'bpm',
       },
       {
-        key: VitalParameter.BLOOD_GLUCOSE,
+        key: 'blood_glucose',
         field: 'bloodGlucose',
         label: 'Blood glucose',
         unit: 'mmol/L',
       },
-      {
-        key: VitalParameter.WEIGHT,
-        field: 'weight',
-        label: 'Weight',
-        unit: 'kg',
-      },
+      { key: 'weight', field: 'weight', label: 'Weight', unit: 'kg' },
     ];
 
     for (const p of params) {
@@ -175,7 +266,7 @@ export class VitalsInsightsService {
       insights.push({
         parameter: p.key,
         severity: direction === 'flat' ? 'normal' : 'watch',
-        direction,
+        direction: direction as 'up' | 'down' | 'flat',
         message:
           direction === 'flat'
             ? `Your ${p.label.toLowerCase()} has been steady around ${Math.round(last)} ${p.unit}.`
@@ -188,7 +279,7 @@ export class VitalsInsightsService {
       summary:
         insights.length === 0
           ? 'Not enough data points yet to identify trends.'
-          : 'This is a simplified analysis. The full AI assessment is temporarily unavailable.',
+          : 'Based on a simplified rule-based analysis of your recent readings.',
     };
   }
 }
