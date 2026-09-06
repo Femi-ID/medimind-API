@@ -58,8 +58,14 @@ async function bootstrap() {
       },
     }),
   );
+
+  const corsOrigins = (process.env.CORS_ORIGIN ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? '*',
+    origin: corsOrigins.length ? corsOrigins : '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -88,7 +94,7 @@ async function bootstrap() {
       // Optional: theme: 'alternate', // or 'default', 'moon', 'purple'
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 4000);
   logger.log(`Application running on http://localhost:3000`);
   logger.log(`Swagger docs available at http://localhost:3000/api/v1/docs`);
 }

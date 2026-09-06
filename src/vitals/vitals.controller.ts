@@ -18,6 +18,7 @@ import { UpdateVitalsDto } from './dtos/update-vitals.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constant';
+import { VitalsInsightsService } from './vitals-insight.service';
 
 @SkipThrottle({
   [CustomThrottlers.STRICT]: true, // this bypasses the global DEFAULT throttler
@@ -27,7 +28,10 @@ import { CustomThrottlers } from 'src/common/constants/custom-throttlers.constan
 @ApiBearerAuth('access-token')
 @Controller('vitals')
 export class VitalsController {
-  constructor(private readonly vitalsService: VitalsService) {}
+  constructor(
+    private readonly vitalsService: VitalsService,
+    private readonly vitalsInsightsService: VitalsInsightsService,
+  ) {}
 
   // @ApiBearerAuth('access-token')
   @Post()
@@ -44,6 +48,11 @@ export class VitalsController {
     return await this.vitalsService.getAllVitals(req.user.id, query);
   }
 
+  @Get('count')
+  async count(@Request() req: UserRequest) {
+    return await this.vitalsService.count(req.user.id);
+  }
+
   // @ApiBearerAuth('access-token')
   @Get('latest')
   async getLatest(@Request() req: UserRequest) {
@@ -54,6 +63,11 @@ export class VitalsController {
   @Get('trends')
   async getTrends(@Request() req: UserRequest, @Query() query: TrendsQueryDto) {
     return await this.vitalsService.getTrends(req.user.id, query);
+  }
+
+  @Get('insights')
+  async getInsights(@Request() req: UserRequest) {
+    return await this.vitalsInsightsService.getInsights(req.user.id, 7);
   }
 
   // @ApiBearerAuth('access-token')
