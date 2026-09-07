@@ -140,13 +140,11 @@ export class UsersService {
         },
       });
 
-      this.logger.log('new user created via google..', newUser);
+      this.logger.log('new user created via google: ', newUser.email);
       return newUser;
     } catch (error) {
-      this.logger.error(error);
-      throw new UnauthorizedException({
-        message: 'Unable to create new user...',
-      });
+      this.logger.error('Failed to create Google user', error);
+      throw error;
     }
   }
 

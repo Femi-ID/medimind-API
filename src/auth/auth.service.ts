@@ -279,10 +279,10 @@ export class AuthService {
   }
 
   async validateOrCreateGoogleUser(googleUser: CreateGoogleUserDto) {
-    // console.log('google user..', googleUser);
-    const user = this.usersService.getUserByEmail(googleUser.email);
-    if (user != null) return user; // user already exists in the db, no need to create user account
-    const newUser = await this.usersService.createGoogleUser(googleUser);
-    return newUser;
+    const existingUser = await this.usersService.getUserByEmail(
+      googleUser.email,
+    );
+    if (existingUser != null) return existingUser; // user already exists in the db, no need to create user account
+    return await this.usersService.createGoogleUser(googleUser);
   }
 }

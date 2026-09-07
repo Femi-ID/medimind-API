@@ -34,7 +34,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       lastName: profile.name.familyName,
       email: profile.emails[0].value,
       passwordHash: null,
-      googleId: profile.googleId,
+      googleId: profile.id,
       //   NOTE: Make passwordHash nullable in the Prisma schema (passwordHash String?) and pass null for OAuth-created users.
       //   avatarUrl: profile.photos[0].value,
       role: UserRole.USER,
